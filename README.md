@@ -14,7 +14,7 @@ SeniorDesign Project: EasyHub
 
 ### Contribution guidelines ###
 
-Dont break shit (purposefully)   
+Dont break stuff (purposefully)   
 Do work on dev or your own branch off of dev/master   
 When making a pull request, don't merge your own pull. Make sure someone else has a chance to    
 look at it, approve it, then merge it.   
