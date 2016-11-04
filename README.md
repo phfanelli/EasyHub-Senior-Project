@@ -11,6 +11,7 @@ SeniorDesign Project: EasyHub
 -Install git    
 -Set up eclipse with WindowBuilder [Instructions here](http://download.eclipse.org/windowbuilder/WB/integration/4.6/)    
 -good to go    
+-should you need help just gripe at me to get on discord  
 
 ### Contribution guidelines ###
 
