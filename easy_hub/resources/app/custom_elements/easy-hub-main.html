@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="import" href="../bower_components/paper-button/paper-button.html">
+    <link rel="import" href="../bower_components/polymer/polymer.html">
+    <link rel="import" href="../bower_components/paper-input/paper-input.html">
+    <link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html">
+    <link rel="import" href="../bower_components/paper-item/paper-item.html">
+    <link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+    <link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+</head>
+
+<dom-module id="easy-hub-main">
+  <style>
+    /* CSS rules for your element */
+    #mainContainer{
+      display: flex;
+      justify-content: center;
+    }
+    #headerBar{
+      width: 100%;
+      position: absolute;
+      height: 20px;
+      background-color: silver;
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      top: 0;
+      bottom: 0;
+      left: 0;
+    }
+    ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #333;
+    }
+
+    li {
+        float: left;
+    }
+
+    /*#repoSelector ::content #paper-input-label-1{
+      color: white;
+    }*/
+
+    #repoSelector{
+      display: flex;
+      justify-content: center;
+    }
+
+    .headerButton {
+      height: 10px;
+      padding: 9px;
+      text-transform: none;
+      margin: 0px;
+      min-width: 0;
+    }
+    .commandButton {
+      background-color: dimgray;
+    }
+    li paper-button:hover {
+      box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+    }
+  </style>
+  <template>
+    <!-- local DOM for your element -->
+    <div id="header" style="height: 1.5vh;">
+      <ul id="headerBar">
+       <li><paper-button class="headerButton">File</paper-button></li>
+       <li><paper-button class="headerButton">Menu</paper-button></li>
+       <li><paper-button class="headerButton">Preferences</paper-button></li>
+       <li><paper-button class="headerButton">View</paper-button></li>
+      </ul>
+    </div>
+    <div id="mainContainer">
+      <div id="repoCommands">
+        <paper-dropdown-menu id="repoSelector" label="Repository Selection">
+          <paper-listbox class="dropdown-content">
+            <paper-item>Repo1</paper-item>
+            <paper-item>Repo2</paper-item>
+            <paper-item>Repo3</paper-item>
+            <paper-item>Repo4</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu>
+        <paper-button raised class="commandButton">Push</paper-button>
+        <paper-button raised class="commandButton">Pull</paper-button>
+        <paper-button raised class="commandButton">Clone</paper-button>
+        <paper-button raised class="commandButton">Commit</paper-button>
+        <paper-button raised class="commandButton">Merge</paper-button>
+        <paper-button raised class="commandButton">ping google</paper-button>
+      </div>
+    </div>
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: "easy-hub-main",
+    properties: {
+
+        },
+    ready: function(e){
+
+    }
+  });
+</script>
