@@ -90,8 +90,11 @@
         <paper-button raised class="commandButton">Clone</paper-button>
         <paper-button raised class="commandButton">Commit</paper-button>
         <paper-button raised class="commandButton">Merge</paper-button>
-        <paper-button raised class="commandButton">ping google</paper-button>
+        <paper-button raised on-tap="_pingGoogle" class="commandButton">ping google</paper-button>
       </div>
+        <!--<div id="commandOutput">-->
+            <!--<textarea rows="20" columns="100" readonly="readonly">Change this text!</textarea>-->
+        <!--</div>-->
     </div>
   </template>
 </dom-module>
@@ -101,8 +104,25 @@
     properties: {
 
         },
-    ready: function(e){
+
+
+      _pingGoogle:  function() {
+          var exec = require('child_process').exec;
+          exec('ping www.google.com', function (error, stdout, stderr) {
+                  console.log('stdout: ' + stdout);
+                  console.log('stderr: ' + stderr);
+                  if (error !== null) {
+                      console.log('exec error: ' + error);
+                  }
+              });
+
+      },
+
+    ready: function(e) {
 
     }
+
+
+
   });
 </script>
