@@ -107,6 +107,7 @@
 
 
       _pingGoogle:  function() {
+			var a = 0; 
           var exec = require('child_process').exec;
           exec('ping www.google.com', function (error, stdout, stderr) {
                   console.log('stdout: ' + stdout);
