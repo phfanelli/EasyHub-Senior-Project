@@ -8,6 +8,7 @@
     <link rel="import" href="../bower_components/paper-item/paper-item.html">
     <link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
     <link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+    <script src="script.js"></script>
 </head>
 
 <dom-module id="easy-hub-main">
@@ -110,10 +111,11 @@
         <div id="repoCommands" style="display: flex; justify-content: center">
             <paper-button raised class="commandButton">Push</paper-button>
             <paper-button raised class="commandButton">Pull</paper-button>
-            <paper-button raised class="commandButton">Clone</paper-button>
+            <paper-button raised on-tap="_clone" class="commandButton">Clone</paper-button>
             <paper-button raised class="commandButton">Commit</paper-button>
             <paper-button raised class="commandButton">Merge</paper-button>
             <paper-button raised on-tap="_pingGoogle" class="commandButton">ping google</paper-button>
+            <paper-input id="cloneDest" type="file">Clone Destination</paper-input>
         </div>
         <!--<div id="commandOutput">-->
         <!--<textarea rows="20" columns="100" readonly="readonly">Change this text!</textarea>-->
@@ -126,6 +128,10 @@
         is: "easy-hub-main",
         properties: {},
 
+        _clone: function() {
+            clone("~/Desktop/newwwww");
+//
+        },
 
         _pingGoogle: function () {
             var exec = require('child_process').exec;
@@ -145,4 +151,18 @@
 
 
     });
+
+    function clone(dir) {
+        var baseCmd = 'git clone https://rhyggs@bitbucket.org/rhyggs/publicrepo.git';
+        baseCmd += ' ' + dir;
+        var exec = require('child_process').exec;
+        exec(baseCmd, function (error, stdout, stderr) {
+            console.log('stdout: ' + stdout);
+            console.log('stderr: ' + stderr);
+            if (error !== null) {
+                console.log('exec error: ' + error);
+            }
+        });
+    }
 </script>
+
