@@ -78,7 +78,56 @@
             height: 15px;
             top: 10px;
         }
+        #cloneDialog {
+            min-width: 450px;
+            max-width: 600px;
+        }
+        #mainWrap {
+            display: flex;
+            padding-right: 0px;
+        }
 
+        #repoSource {
+            float: left;
+            width: 40%;
+        }
+        #add {
+            float: left;
+            display: flex;
+            width: 15%;
+            padding-top: 40px;
+            padding-bottom: 40px;
+            padding-left: 20px;
+            padding-right: 30px;
+        }
+        #createLocal {
+            float: right;
+            display: flex;
+            justify-content: center;
+            width: 45%;
+            padding-top: 40px;
+            padding-bottom: 40px;
+            padding-left: 0px;
+            padding-right: 20px;
+            max-height: 44px;
+        }
+        #verticalLine {
+            border-left: thick solid black;
+        }
+        .cloneButton  {
+            background-color: purple;
+            color: lightgray;
+        }
+        #okCancel {
+            font-size: 10px;
+            padding: 0px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            padding-bottom: 5px;
+            margin: 0px;
+
+        }
         #cloneDest ::content #input{
             text-overflow: ellipsis;
         }
@@ -91,15 +140,28 @@
         <paper-toast id="toastNotify" text="placeholder"></paper-toast>
         <paper-dialog id="cloneDialog">
             <h2>Clone Repository</h2>
-            <div>Dialog body</div>
-            <paper-input id="cloneRemote" label="Remote Repository URL"></paper-input>
-            <div style="display: flex; justify-content: center; align-items: center">
-                <paper-input id="cloneDest" readonly label="Destination Directory" value="{{repoFormDestination}}"></paper-input>
-                <paper-icon-button icon="icons:folder" on-tap="_openFolderDialog">Add Repo</paper-icon-button>
+
+            <div id="mainWrap">
+                <div id="repoSource">
+                    <div style="display:flex; float: left; align-items:center; ">
+                        <paper-input id="cloneRemote" label="Remote Repository URL"></paper-input>
+                    </div>
+                    <div style="display:flex; float: left; align-items:center; ">
+                        <paper-input id="cloneDest" readonly label="Destination Directory" value="{{repoFormDestination}}"></paper-input>
+                        <paper-icon-button icon="icons:folder" on-tap="_openFolderDialog">Add Repo</paper-icon-button>
+                    </div>
+                </div>
+                <div id="add">
+                    <paper-button raised class="cloneButton">add</paper-button>
+                </div>
+                <div id="verticalLine"></div>
+                <div id="createLocal">
+                    <paper-button raised class="cloneButton">create local</paper-button>
+                </div>
             </div>
-            <div class="buttons">
-                <paper-button dialog-confirm on-tap="_clone" class="headerButton">Ok</paper-button>
-                <paper-button dialog-dismiss on-tap="_toggleClone" class="headerButton">Cancel</paper-button>
+            <div id="okCancel";>
+                <paper-button dialog-confirm on-tap="_clone" class="cloneButton">Ok</paper-button>
+                <paper-button dialog-dismiss on-tap="_toggleClone" class="cloneButton">Cancel</paper-button>
             </div>
         </paper-dialog>
 
