@@ -151,15 +151,15 @@
                     </div>
                 </div>
                 <div id="add">
-                    <paper-button raised class="cloneButton">add</paper-button>
+                    <paper-button raised class="cloneButton" on-tap="_clone">add</paper-button>
                 </div>
                 <div id="verticalLine"></div>
                 <div id="createLocal">
-                    <paper-button raised class="cloneButton">create local</paper-button>
+                    <paper-button raised class="cloneButton" on-tap="_initLocal">create local</paper-button>
                 </div>
             </div>
             <div id="okCancel";>
-                <paper-button dialog-confirm on-tap="_clone" class="cloneButton">Ok</paper-button>
+                <!--<paper-button dialog-confirm on-tap="_clone" class="cloneButton">Ok</paper-button>-->
                 <paper-button dialog-dismiss on-tap="_toggleClone" class="cloneButton">Cancel</paper-button>
             </div>
         </paper-dialog>
@@ -223,10 +223,16 @@
             this.$.cloneDialog.toggle();
         },
 
+        _initLocal: function() {
+            var dest = this.$.cloneDest.value;
+            init(dest);
+        },
+
         _clone: function() {
+            console.log(navigator);
             var remote = this.$.cloneRemote.value;
             var name = remote.split("/").pop().split(".")[0];
-            var dest = this.$.cloneDest.value + "\\"+name+"\\";
+            var dest = this.$.cloneDest.value + "/"+name+"/";
             clone(remote, dest);
             this.$.cloneDialog.toggle();
             var repo = {url: remote, destination: dest, name: name};
@@ -262,11 +268,20 @@
         },
     });
 
+    function init(dest) {
+        var baseCmd = 'cd ' + dest + '; ' + 'git init';
+        execute(baseCmd);
+    }
+
     function clone(remote, dest) {
         var baseCmd = 'git clone ';
         baseCmd += remote + ' ' + dest;
+        execute(baseCmd);
+    }
+
+    function execute(command) {
         var exec = require('child_process').exec;
-        exec(baseCmd, function (error, stdout, stderr) {
+        exec(command, function (error, stdout, stderr) {
             console.log('stdout: ' + stdout);
             console.log('stderr: ' + stderr);
             if (error !== null) {
