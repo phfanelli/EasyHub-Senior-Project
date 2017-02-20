@@ -138,9 +138,8 @@
     </style>
     <template>
         <paper-toast id="toastNotify" text="placeholder"></paper-toast>
-        <paper-dialog id="cloneDialog">
+        <paper-dialog id="cloneDialog" modal>
             <h2>Clone Repository</h2>
-
             <div id="mainWrap">
                 <div id="repoSource">
                     <div style="display:flex; float: left; align-items:center; ">
@@ -196,6 +195,11 @@
 <script>
     Polymer({
         is: "easy-hub-main",
+
+        listeners: {
+            'cloneDialog.iron-overlay-closed': '_clearCloneInput',
+        },
+
         properties: {
             repoArray: {
                 type: Array,
@@ -210,7 +214,10 @@
 
         },
 
-
+        _clearCloneInput: function () {
+            this.$.cloneRemote.value = "";
+            this.$.cloneDest.value = "";
+        },
 
         _toggleClone: function() {
             this.$.cloneDialog.toggle();
@@ -218,10 +225,11 @@
 
         _clone: function() {
             var remote = this.$.cloneRemote.value;
-            var dest = this.$.cloneDest.value;
+            var name = remote.split("/").pop().split(".")[0];
+            var dest = this.$.cloneDest.value + "\\"+name+"\\";
             clone(remote, dest);
             this.$.cloneDialog.toggle();
-            var repo = {name: remote, destination: dest};
+            var repo = {url: remote, destination: dest, name: name};
             this.push('repoArray', repo);
             this.$.toastNotify.text = "Repo added!";
             this.$.toastNotify.open();
