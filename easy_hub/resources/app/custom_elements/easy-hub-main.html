@@ -72,6 +72,7 @@
             top: 25px;
         }
 
+
         li paper-button:hover {
             box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
         }
@@ -115,6 +116,8 @@
             <paper-button raised class="commandButton">Merge</paper-button>
             <paper-button raised on-tap="_pingGoogle" class="commandButton">ping google</paper-button>
         </div>
+        <paper-button raised on-tap="file" class="commandButton">file</paper-button>
+        <!--<button type="button" onclick="file('zack','git','data.json')">save </button>-->
         <!--<div id="commandOutput">-->
         <!--<textarea rows="20" columns="100" readonly="readonly">Change this text!</textarea>-->
         <!--</div>-->
@@ -122,9 +125,59 @@
     </template>
 </dom-module>
 <script>
+
+//        function file(id , type, destination){
+//
+//            $.getJSON(".\\data.json", function(json) {
+//                console.log(json); // this will show the info it in firebug console
+//            });
+//
+//
+//
+//
+////            var data = JSON.parse("\\resources\\app\\data.json");
+////
+////            data.repo.push({
+////                id:"add" , ty: "you" , dir: "C:suckmeoff"
+////            });
+////
+
+//        }
+
+
     Polymer({
         is: "easy-hub-main",
-        properties: {},
+        properties: {
+
+            data: {
+                type: Object,
+                value: {
+                    repo: []
+                }
+            },
+        },
+
+        file: function(id , type, destination) {
+
+            this.data.repo.push({
+                id:"add",
+                ty: "you",
+                dir: "C:"
+            });
+            $.getJSON(".\\data.json", function(json) {
+                console.log(json); // this will show the info it in firebug console
+                json.repo = json.repo.concat(this.data.repo);
+                var jsonfile = require('jsonfile');
+                var file = '.\\resources\\app\\data.json';
+                jsonfile.writeFile(file, json, function (err) {
+                    if(err){
+                        console.error(err);
+                    }
+                })
+
+            }.bind(this));
+
+        },
 
 
         _pingGoogle: function () {
@@ -135,6 +188,7 @@
                 if (error !== null) {
                     console.log('exec error: ' + error);
                 }
+
             });
 
         },
