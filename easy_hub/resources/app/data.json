@@ -1,1 +1,1 @@
-{"repo":[{"id":"zack","ty":"git","de":"c:yes"},{"id":"add","ty":"you","dir":"C:"},{"id":"add","ty":"you","dir":"C:"}]}
+{"applicationData":{"repoArray":[{"name":"zacks_project","type":"git","destination":"C:dest","url":"www.wikipedia.com/morgan_freeman"},{"name":"bens_project","type":"git","destination":"C:dest", "url":"www.wikipedia.com/morgan_freeman"},{"name":"ryders_project","type":"git","destination":"C:dest", "url":"www.wikipedia.com/morgan_freeman"},{"name":"phils_project","type":"git","destination":"C:dest", "url":"www.wikipedia.com/morgan_freeman"}]}}
