@@ -8,6 +8,12 @@
     <link rel="import" href="../bower_components/paper-item/paper-item.html">
     <link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
     <link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+    <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+    <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+    <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+    <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+    <link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
+    <script src="script.js"></script>
 </head>
 
 <dom-module id="easy-hub-main">
@@ -16,6 +22,7 @@
         #mainContainer {
             display: flex;
             justify-content: center;
+            align-items: center;
         }
 
         #headerBar {
@@ -69,7 +76,60 @@
             background-color: red;
             width: 15px;
             height: 15px;
-            top: 25px;
+            top: 10px;
+        }
+        #cloneDialog {
+            min-width: 450px;
+            max-width: 600px;
+        }
+        #mainWrap {
+            display: flex;
+            padding-right: 0px;
+        }
+
+        #repoSource {
+            float: left;
+            width: 40%;
+        }
+        #add {
+            float: left;
+            display: flex;
+            width: 15%;
+            padding-top: 40px;
+            padding-bottom: 40px;
+            padding-left: 20px;
+            padding-right: 30px;
+        }
+        #createLocal {
+            float: right;
+            display: flex;
+            justify-content: center;
+            width: 45%;
+            padding-top: 40px;
+            padding-bottom: 40px;
+            padding-left: 0px;
+            padding-right: 20px;
+            max-height: 44px;
+        }
+        #verticalLine {
+            border-left: thick solid black;
+        }
+        .cloneButton  {
+            background-color: purple;
+            color: lightgray;
+        }
+        #okCancel {
+            font-size: 10px;
+            padding: 0px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            padding-bottom: 5px;
+            margin: 0px;
+
+        }
+        #cloneDest ::content #input{
+            text-overflow: ellipsis;
         }
 
         li paper-button:hover {
@@ -77,40 +137,49 @@
         }
     </style>
     <template>
-        <!-- local DOM for your element -->
-        <div id="header" style="height: 1.5vh;">
-            <ul id="headerBar">
-                <li>
-                    <paper-button class="headerButton">File</paper-button>
-                </li>
-                <li>
-                    <paper-button class="headerButton">Menu</paper-button>
-                </li>
-                <li>
-                    <paper-button class="headerButton">Preferences</paper-button>
-                </li>
-                <li>
-                    <paper-button class="headerButton">View</paper-button>
-                </li>
-            </ul>
-        </div>
+        <paper-toast id="toastNotify" text="placeholder"></paper-toast>
+        <paper-dialog id="cloneDialog" modal>
+            <h2>Clone Repository</h2>
+            <div id="mainWrap">
+                <div id="repoSource">
+                    <div style="display:flex; float: left; align-items:center; ">
+                        <paper-input id="cloneRemote" label="Remote Repository URL"></paper-input>
+                    </div>
+                    <div style="display:flex; float: left; align-items:center; ">
+                        <paper-input id="cloneDest" readonly label="Destination Directory" value="{{repoFormDestination}}"></paper-input>
+                        <paper-icon-button icon="icons:folder" on-tap="_openFolderDialog">Add Repo</paper-icon-button>
+                    </div>
+                </div>
+                <div id="add">
+                    <paper-button raised class="cloneButton" on-tap="_clone">add</paper-button>
+                </div>
+                <div id="verticalLine"></div>
+                <div id="createLocal">
+                    <paper-button raised class="cloneButton" on-tap="_initLocal">create local</paper-button>
+                </div>
+            </div>
+            <div id="okCancel";>
+                <!--<paper-button dialog-confirm on-tap="_clone" class="cloneButton">Ok</paper-button>-->
+                <paper-button dialog-dismiss on-tap="_toggleClone" class="cloneButton">Cancel</paper-button>
+            </div>
+        </paper-dialog>
+
         <div id="mainContainer">
-            <div id="repo">
+            <paper-button id="statusButton" style="min-width: 2px;"></paper-button>
+            <div id="repoContainer" style="display: flex; align-items: flex-end">
                 <paper-dropdown-menu id="repoSelector" label="Repository Selection">
                     <paper-listbox class="dropdown-content">
-                        <paper-item>Repo1</paper-item>
-                        <paper-item>Repo2</paper-item>
-                        <paper-item>Repo3</paper-item>
-                        <paper-item>Repo4</paper-item>
+                        <template is="dom-repeat" items="{{repoArray}}">
+                            <paper-item>{{item.name}}</paper-item>
+                        </template>
                     </paper-listbox>
                 </paper-dropdown-menu>
+                <paper-icon-button icon="icons:add" on-tap="_toggleClone">Add Repo</paper-icon-button>
             </div>
-            <paper-button id="statusButton" style="min-width: 2px;"></paper-button>
         </div>
         <div id="repoCommands" style="display: flex; justify-content: center">
             <paper-button raised class="commandButton">Push</paper-button>
             <paper-button raised class="commandButton">Pull</paper-button>
-            <paper-button raised class="commandButton">Clone</paper-button>
             <paper-button raised class="commandButton">Commit</paper-button>
             <paper-button raised class="commandButton">Merge</paper-button>
             <paper-button raised on-tap="_pingGoogle" class="commandButton">ping google</paper-button>
@@ -119,13 +188,59 @@
         <!--<textarea rows="20" columns="100" readonly="readonly">Change this text!</textarea>-->
         <!--</div>-->
         <!-- </div> -->
+        <!-- TOOLTIPS -->
+        <paper-tooltip for="cloneDest" offset="0">{{repoFormDestination}}</paper-tooltip>
     </template>
 </dom-module>
 <script>
     Polymer({
         is: "easy-hub-main",
-        properties: {},
 
+        listeners: {
+            'cloneDialog.iron-overlay-closed': '_clearCloneInput',
+        },
+
+        properties: {
+            repoArray: {
+                type: Array,
+                value: function () {
+                    return [];
+                }
+             },
+            repoFormDestination: {
+                type: String,
+                value: ""
+            },
+
+        },
+
+        _clearCloneInput: function () {
+            this.$.cloneRemote.value = "";
+            this.$.cloneDest.value = "";
+        },
+
+        _toggleClone: function() {
+            this.$.cloneDialog.toggle();
+        },
+
+        _initLocal: function() {
+            var dest = this.$.cloneDest.value;
+            init(dest);
+        },
+
+        _clone: function() {
+            console.log(navigator);
+            var remote = this.$.cloneRemote.value;
+            var name = remote.split("/").pop().split(".")[0];
+            var dest = this.$.cloneDest.value + "/"+name+"/";
+            clone(remote, dest);
+            this.$.cloneDialog.toggle();
+            var repo = {url: remote, destination: dest, name: name};
+            this.push('repoArray', repo);
+            this.$.toastNotify.text = "Repo added!";
+            this.$.toastNotify.open();
+
+        },
 
         _pingGoogle: function () {
             var exec = require('child_process').exec;
@@ -138,11 +253,41 @@
             });
 
         },
+        _openFolderDialog: function () {
+            dialog.showOpenDialog({
+                title:"Select a folder",
+                properties: ["openDirectory"],
+                defaultPath: "C:\\"
+            },function (folderPath) {
+                this.set('repoFormDestination', folderPath);
+            }.bind(this));
+        },
 
         ready: function (e) {
 
-        }
-
-
+        },
     });
+
+    function init(dest) {
+        var baseCmd = 'cd ' + dest + '; ' + 'git init';
+        execute(baseCmd);
+    }
+
+    function clone(remote, dest) {
+        var baseCmd = 'git clone ';
+        baseCmd += remote + ' ' + dest;
+        execute(baseCmd);
+    }
+
+    function execute(command) {
+        var exec = require('child_process').exec;
+        exec(command, function (error, stdout, stderr) {
+            console.log('stdout: ' + stdout);
+            console.log('stderr: ' + stderr);
+            if (error !== null) {
+                console.log('exec error: ' + error);
+            }
+        });
+    }
 </script>
+
