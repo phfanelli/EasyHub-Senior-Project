@@ -13,7 +13,6 @@
     <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
     <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
     <link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
-    <script src="script.js"></script>
 </head>
 
 <dom-module id="easy-hub-main">
@@ -132,6 +131,7 @@
             text-overflow: ellipsis;
         }
 
+
         li paper-button:hover {
             box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
         }
@@ -184,6 +184,7 @@
             <paper-button raised class="commandButton">Merge</paper-button>
             <paper-button raised on-tap="_pingGoogle" class="commandButton">ping google</paper-button>
         </div>
+        <!--<button type="button" onclick="file('zack','git','data.json')">save </button>-->
         <!--<div id="commandOutput">-->
         <!--<textarea rows="20" columns="100" readonly="readonly">Change this text!</textarea>-->
         <!--</div>-->
@@ -193,25 +194,52 @@
     </template>
 </dom-module>
 <script>
+
     Polymer({
         is: "easy-hub-main",
+
 
         listeners: {
             'cloneDialog.iron-overlay-closed': '_clearCloneInput',
         },
 
         properties: {
+            applicationData: {
+                type: Object,
+                value: {
+
+                }
+            },
             repoArray: {
                 type: Array,
                 value: function () {
                     return [];
                 }
-             },
+            },
             repoFormDestination: {
                 type: String,
                 value: ""
             },
 
+
+        },
+
+        _updateApplicationData: function() {
+            var file = '.\\resources\\app\\data.json';
+            // add appended properties
+            this.applicationData.repoArray = this.repoArray;
+
+            jsonfile.writeFile(file, {applicationData:this.applicationData}, function (err) {
+                if(err){
+                    console.error(err);
+                }
+            });
+        },
+
+        _retrieveRepoArrayFromJSON: function() {
+            $.getJSON(".\\data.json", function(json) {
+                this.set('repoArray', json.applicationData.repoArray);
+            }.bind(this));
         },
 
         _clearCloneInput: function () {
@@ -235,10 +263,11 @@
             var dest = this.$.cloneDest.value + "/"+name+"/";
             clone(remote, dest);
             this.$.cloneDialog.toggle();
-            var repo = {url: remote, destination: dest, name: name};
+            var repo = {url: remote, destination: dest, name: name, type: "git"};
             this.push('repoArray', repo);
             this.$.toastNotify.text = "Repo added!";
             this.$.toastNotify.open();
+            this._updateApplicationData();
 
         },
 
@@ -250,6 +279,7 @@
                 if (error !== null) {
                     console.log('exec error: ' + error);
                 }
+
             });
 
         },
@@ -264,7 +294,7 @@
         },
 
         ready: function (e) {
-
+            this._retrieveRepoArrayFromJSON();
         },
     });
 
