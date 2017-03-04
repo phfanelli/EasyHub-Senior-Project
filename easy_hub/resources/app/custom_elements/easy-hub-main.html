@@ -182,6 +182,7 @@
             <paper-button raised class="commandButton">Pull</paper-button>
             <paper-button raised class="commandButton">Commit</paper-button>
             <paper-button raised class="commandButton">Merge</paper-button>
+            <paper-button raised on-tap="_updateRemoteBranches" class="commandButton">Update Remotes</paper-button>
             <paper-button raised on-tap="_pingGoogle" class="commandButton">ping google</paper-button>
         </div>
         <!--<button type="button" onclick="file('zack','git','data.json')">save </button>-->
@@ -220,8 +221,35 @@
                 type: String,
                 value: ""
             },
+            // path in the filesystem to current repo
+            currentRepoPath: String,
+            // list of remote branches for current repo
+            remoteBranches: {
+                type: Array,
+                value: function () {
+                    return [];
+                }
+            }
 
+        },
 
+        /**
+         * update the remote branches for the current repository
+         * dependant on the current repo path being set prior to execution (hardcoded for now)
+         * @private
+         */
+        _updateRemoteBranches: function() {
+            this.remoteBranches = [];
+            this.currentRepoPath='/home/rmh/sd/senior-design/';
+            var fs = require('fs');
+            // as of now, just check default remote name (origin)
+            // TODO: in the future check for more remote sources
+            var files = fs.readdirSync(this.currentRepoPath + '.git/refs/remotes/origin/');
+
+            for (i=0;i<files.length;i++){
+                this.remoteBranches.push(files[i]);
+            }
+            console.log(this.remoteBranches);
         },
 
         _updateApplicationData: function() {
@@ -298,17 +326,30 @@
         },
     });
 
+    /**
+     * attempts to initialize a git repository
+     * @param dest - path to new repository on local filesystem
+     */
     function init(dest) {
         var baseCmd = 'cd ' + dest + '; ' + 'git init';
         execute(baseCmd);
     }
 
+    /**
+     * attempts to clone a remote git repository
+     * @param remote - address of remote repository
+     * @param dest - path to new repository on local filesystem
+     */
     function clone(remote, dest) {
         var baseCmd = 'git clone ';
         baseCmd += remote + ' ' + dest;
         execute(baseCmd);
     }
 
+    /**
+     * asynchronously executes a command in the terminal, logs output to console
+     * @param command - command to be executed
+     */
     function execute(command) {
         var exec = require('child_process').exec;
         exec(command, function (error, stdout, stderr) {
