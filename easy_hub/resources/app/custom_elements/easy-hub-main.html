@@ -296,28 +296,25 @@
 
         ready: function (e) {
             this._retrieveRepoArrayFromJSON();
-            osCheck();
+            this._osCheck();
+            this._updateApplicationData();
         },
+        _osCheck: function () {
+            var OSType = "Not Supported";
+            if (window.navigator.appVersion.indexOf("Win") != -1) OSType = "Windows";
+            else if (window.navigator.appVersion.indexOf("Mac") != -1) OSType = "MacOS";
+            else if (window.navigator.appVersion.indexOf("Linux") != -1) OSType = "Linux";
+
+           //write the OS Type to file
+            this.applicationData.OS = OSType;
+        }
     });
 
     function init(dest) {
         var baseCmd = 'cd ' + dest + '; ' + 'git init';
         execute(baseCmd);
     }
-    function osCheck () {
-        var OSType = "Not Supported";
-        if (window.navigator.appVersion.indexOf("Win") != -1) OSType = "Windows";
-        else if (window.navigator.appVersion.indexOf("Mac") != -1) OSType = "MacOS";
-        else if (window.navigator.appVersion.indexOf("Linux") != -1) OSType = "Linux";
 
-        //write the OS Type to file
-        var file = '.\\resources\\app\\info.json';
-        jsonfile.writeFile(file, OSType, function (err) {
-            if(err){
-                console.error(err);
-            }
-        });
-    }
     function clone(remote, dest) {
         var baseCmd = 'git clone ';
         baseCmd += remote + ' ' + dest;
