@@ -54,7 +54,7 @@
         color: white;
         }*/
 
-        #repoSelector {
+        .selector {
             display: flex;
             justify-content: space-around;
         }
@@ -158,7 +158,7 @@
                     <paper-button raised class="cloneButton" on-tap="_initLocal">create local</paper-button>
                 </div>
             </div>
-            <div id="okCancel";>
+            <div id="okCancel">
                 <!--<paper-button dialog-confirm on-tap="_clone" class="cloneButton">Ok</paper-button>-->
                 <paper-button dialog-dismiss on-tap="_toggleClone" class="cloneButton">Cancel</paper-button>
             </div>
@@ -167,9 +167,16 @@
         <div id="mainContainer">
             <paper-button id="statusButton" style="min-width: 2px;"></paper-button>
             <div id="repoContainer" style="display: flex; align-items: flex-end">
-                <paper-dropdown-menu id="repoSelector" label="Repository Selection">
+                <paper-dropdown-menu class="selector" id="repoSelector" label="Repository Selection">
                     <paper-listbox class="dropdown-content">
                         <template is="dom-repeat" items="{{repoArray}}">
+                            <paper-item>{{item.name}}</paper-item>
+                        </template>
+                    </paper-listbox>
+                </paper-dropdown-menu>
+                <paper-dropdown-menu class="selector" id="branchSelector" label="Branch Selection">
+                    <paper-listbox class="dropdown-content">
+                        <template is="dom-repeat" items="{{remoteBranches}}">
                             <paper-item>{{item.name}}</paper-item>
                         </template>
                     </paper-listbox>
@@ -202,6 +209,7 @@
 
         listeners: {
             'cloneDialog.iron-overlay-closed': '_clearCloneInput',
+            'repoSelector.iron-select': '_updateCurrentRepoPath',
         },
 
         properties: {
@@ -234,20 +242,32 @@
         },
 
         /**
+         * sets the current repo path when a different repo is selected by the user
+         */
+        _updateCurrentRepoPath: function() {
+            // get selected repo
+            var label = this.$.repoSelector.selectedItemLabel;
+            // get path of selected repo
+            for(i=0;i<this.repoArray.length;i++) {
+                var name = String(this.repoArray[i].name);
+                if (name == label) {
+                    this.currentRepoPath = String(this.repoArray[i].destination);
+                    break;
+                }
+            }
+        },
+
+        /**
          * update the remote branches for the current repository
          * dependant on the current repo path being set prior to execution (hardcoded for now)
          * @private
          */
         _updateRemoteBranches: function() {
             this.remoteBranches = [];
-            this.currentRepoPath='/home/rmh/sd/senior-design/';
-            var fs = require('fs');
-            // as of now, just check default remote name (origin)
-            // TODO: in the future check for more remote sources
-            var files = fs.readdirSync(this.currentRepoPath + '.git/refs/remotes/origin/');
+            var remotes = String(execute_sync('git branch -r', this.currentRepoPath)).split("\n");
 
-            for (i=0;i<files.length;i++){
-                this.remoteBranches.push(files[i]);
+            for (i=0;i<remotes.length;i++){
+                this.remoteBranches.push(remotes[i]);
             }
             console.log(this.remoteBranches);
         },
@@ -359,6 +379,16 @@
                 console.log('exec error: ' + error);
             }
         });
+    }
+
+    /**
+     *
+     * @param command
+     * @param dir
+     * @returns {*}
+     */
+    function execute_sync(command, dir) {
+        return require('child_process').execSync(command, {cwd:dir});
     }
 </script>
 
