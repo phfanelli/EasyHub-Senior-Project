@@ -218,15 +218,21 @@
             OS_SLASH: {
                 type: String,
                 value: "/"
-            }
+            },
+            DATA_PATH: {
+                type: Object,
+                value: {
+                    READ: "",
+                    WRITE: "",
+                }
+            },
 
 
         },
 
 
         _updateApplicationData: function() {
-            var file = '.\\resources\\app\\data.json';
-            jsonfile.writeFile(file, {applicationData:this.applicationData}, function (err) {
+            jsonfile.writeFile(this.DATA_PATH.WRITE, {applicationData:this.applicationData}, function (err) {
                 if(err){
                     console.error(err);
                 }
@@ -236,7 +242,7 @@
         _retrieveApplicationDataFromJSON: function() {
             // Promises are magic. That's all I know
             return Promise.all([
-                $.getJSON(".\\data.json", function(json) {
+                $.getJSON(this.DATA_PATH.READ, function(json) {
                     this.set('applicationData', json.applicationData);
                 }.bind(this)),
             ]);
@@ -314,15 +320,21 @@
             var OSType = "Not Supported";
             if (window.navigator.appVersion.indexOf("Win") != -1){
                 OSType = "Windows";
+                this.DATA_PATH.WRITE = "./resources/apps/data.json";
+                this.DATA_PATH.WRITE = "./data.json";
                 //possibly set this.OS_SLASH
             }
             else if (window.navigator.appVersion.indexOf("Mac") != -1){
                 OSType = "MacOS";
+                this.DATA_PATH.WRITE = "data.json";
+                this.DATA_PATH.READ = "data.json";
                 //possibly set this.OS_SLASH
             }
             else if (window.navigator.appVersion.indexOf("Linux") != -1){
                 OSType = "Linux";
                 //possibly set this.OS_SLASH
+                this.DATA_PATH.WRITE = "data.json";
+                this.DATA_PATH.READ = "data.json";
             }
 
             //write the OS Type to file
@@ -330,21 +342,17 @@
         },
 
         ready: function (e) {
+            this._osCheck();
             // check if we have data.JSON
-            if (fs.existsSync('.\\resources\\app\\data.json')) {
+            if (fs.existsSync(this.DATA_PATH.READ)) {
                 // .then means that everything within is executed after any and ALL (even asynchronous) calls are completed
                 this._retrieveApplicationDataFromJSON().then(function(){
-                    if(!this.applicationData.OS){
-                        this._osCheck();
-                        this._updateApplicationData();
-                    }
                     if(!this.applicationData.repoArray){
                         this.applicationData.repoArray = [];
                     }
                 }.bind(this));
             }
             else{
-                this._osCheck();
                 this.applicationData.repoArray = [];
                 this._updateApplicationData();
             }
