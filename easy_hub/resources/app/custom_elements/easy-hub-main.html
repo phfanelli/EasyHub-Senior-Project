@@ -265,7 +265,13 @@
             if(!this._findRepoWithMatchingUrl(remote)){
                 clone(remote, dest);
                 this.$.cloneDialog.toggle();
-                this.push('applicationData.repoArray', repo);
+                // covering up for polymer jank
+                if(this.applicationData.repoArray.length == 0){
+                    this.set('applicationData.repoArray', [repo]);
+                }
+                else{
+                    this.push('applicationData.repoArray', repo);
+                }
                 this.$.toastNotify.text = "Repo added!";
                 this.$.toastNotify.open();
                 this._updateApplicationData();
@@ -324,16 +330,26 @@
         },
 
         ready: function (e) {
+            // check if we have data.JSON
+            if (fs.existsSync('.\\resources\\app\\data.json')) {
+                // .then means that everything within is executed after any and ALL (even asynchronous) calls are completed
+                this._retrieveApplicationDataFromJSON().then(function(){
+                    if(!this.applicationData.OS){
+                        this._osCheck();
+                        this._updateApplicationData();
+                    }
+                    if(!this.applicationData.repoArray){
+                        this.applicationData.repoArray = [];
+                    }
+                }.bind(this));
+            }
+            else{
+                this._osCheck();
+                this.applicationData.repoArray = [];
+                this._updateApplicationData();
+            }
             // .then means that everything within is executed after any and ALL (even asynchronous) calls are completed
-            this._retrieveApplicationDataFromJSON().then(function(){
-                if(!this.applicationData.OS){
-                    this._osCheck();
-                    this._updateApplicationData();
-                }
-                if(!this.applicationData.repoArray){
-                    this.applicationData.repoArray = [];
-                }
-            }.bind(this));
+
         },
     });
 
