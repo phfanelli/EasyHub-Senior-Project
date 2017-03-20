@@ -207,7 +207,8 @@
             applicationData: {
                 type: Object,
                 value: {
-
+                    repoArray: [],
+                    OS: "",
                 }
             },
             repoFormDestination: {
@@ -233,9 +234,12 @@
         },
 
         _retrieveApplicationDataFromJSON: function() {
-            $.getJSON(".\\data.json", function(json) {
-                this.set('applicationData', json.applicationData);
-            }.bind(this));
+            // Promises are magic. That's all I know
+            return Promise.all([
+                $.getJSON(".\\data.json", function(json) {
+                    this.set('applicationData', json.applicationData);
+                }.bind(this)),
+            ]);
         },
 
         _clearCloneInput: function () {
@@ -257,14 +261,25 @@
             var remote = this.$.cloneRemote.value;
             var name = remote.split("/").pop().split(".")[0];
             var dest = "\"" + this.$.cloneDest.value + this.OS_SLASH + name + this.OS_SLASH + "\""; //added quotes around file path to account for files with spaces
-            clone(remote, dest);
-            this.$.cloneDialog.toggle();
             var repo = {url: remote, destination: dest, name: name, type: "git"};
-            this.push('applicationData.repoArray', repo);
-            this.$.toastNotify.text = "Repo added!";
-            this.$.toastNotify.open();
-            this._updateApplicationData();
+            if(!this._findRepoWithMatchingUrl(remote)){
+                clone(remote, dest);
+                this.$.cloneDialog.toggle();
+                this.push('applicationData.repoArray', repo);
+                this.$.toastNotify.text = "Repo added!";
+                this.$.toastNotify.open();
+                this._updateApplicationData();
+            }
+            else{
+                this.$.toastNotify.text = "Repo already exists!";
+                this.$.toastNotify.open();
+            }
 
+        },
+
+        _findRepoWithMatchingUrl: function (url) {
+            // checks if we have the repo with the same url
+            return _.find(this.applicationData.repoArray, 'url', url);
         },
 
         _pingGoogle: function () {
@@ -309,11 +324,16 @@
         },
 
         ready: function (e) {
-            this._retrieveApplicationDataFromJSON();
-            if(!this.applicationData.OS){
-                this._osCheck();
-                this._updateApplicationData();
-            }
+            // .then means that everything within is executed after any and ALL (even asynchronous) calls are completed
+            this._retrieveApplicationDataFromJSON().then(function(){
+                if(!this.applicationData.OS){
+                    this._osCheck();
+                    this._updateApplicationData();
+                }
+                if(!this.applicationData.repoArray){
+                    this.applicationData.repoArray = [];
+                }
+            }.bind(this));
         },
     });
 
