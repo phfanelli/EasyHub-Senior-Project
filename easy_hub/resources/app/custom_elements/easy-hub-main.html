@@ -320,8 +320,8 @@
             var OSType = "Not Supported";
             if (window.navigator.appVersion.indexOf("Win") != -1){
                 OSType = "Windows";
-                this.DATA_PATH.WRITE = "./resources/apps/data.json";
-                this.DATA_PATH.WRITE = "./data.json";
+                this.DATA_PATH.WRITE = "./resources/app/data.json";
+                this.DATA_PATH.READ = "./data.json";
                 //possibly set this.OS_SLASH
             }
             else if (window.navigator.appVersion.indexOf("Mac") != -1){
@@ -344,7 +344,7 @@
         ready: function (e) {
             this._osCheck();
             // check if we have data.JSON
-            if (fs.existsSync(this.DATA_PATH.READ)) {
+            if (fs.existsSync(this.DATA_PATH.WRITE)) {
                 // .then means that everything within is executed after any and ALL (even asynchronous) calls are completed
                 this._retrieveApplicationDataFromJSON().then(function(){
                     if(!this.applicationData.repoArray){
