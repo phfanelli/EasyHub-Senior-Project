@@ -1,10 +1,12 @@
-const electron = require('electron')
+const electron = require('electron');
 
-const {app, BrowserWindow} = electron
-const path = require('path')
-const url = require('url')
+const {app, BrowserWindow} = electron;
+const path = require('path');
+const url = require('url');
 const jsonfile = require('jsonfile');
-const fs = require('fs')
+const fs = require('fs');
+const _ = require('lodash');  // lodash API, really powerful stuff for js objects. Look at docs or ask Ben for info
+
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.

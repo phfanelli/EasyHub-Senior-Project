@@ -207,7 +207,8 @@
             applicationData: {
                 type: Object,
                 value: {
-
+                    repoArray: [],
+                    OS: "",
                 }
             },
             repoFormDestination: {
@@ -217,15 +218,21 @@
             OS_SLASH: {
                 type: String,
                 value: "/"
-            }
+            },
+            DATA_PATH: {
+                type: Object,
+                value: {
+                    READ: "",
+                    WRITE: "",
+                }
+            },
 
 
         },
 
 
         _updateApplicationData: function() {
-            var file = '.\\resources\\app\\data.json';
-            jsonfile.writeFile(file, {applicationData:this.applicationData}, function (err) {
+            jsonfile.writeFile(this.DATA_PATH.WRITE, {applicationData:this.applicationData}, function (err) {
                 if(err){
                     console.error(err);
                 }
@@ -233,9 +240,12 @@
         },
 
         _retrieveApplicationDataFromJSON: function() {
-            $.getJSON(".\\data.json", function(json) {
-                this.set('applicationData', json.applicationData);
-            }.bind(this));
+            // Promises are magic. That's all I know
+            return Promise.all([
+                $.getJSON(this.DATA_PATH.READ, function(json) {
+                    this.set('applicationData', json.applicationData);
+                }.bind(this)),
+            ]);
         },
 
         _clearCloneInput: function () {
@@ -257,14 +267,31 @@
             var remote = this.$.cloneRemote.value;
             var name = remote.split("/").pop().split(".")[0];
             var dest = "\"" + this.$.cloneDest.value + this.OS_SLASH + name + this.OS_SLASH + "\""; //added quotes around file path to account for files with spaces
-            clone(remote, dest);
-            this.$.cloneDialog.toggle();
             var repo = {url: remote, destination: dest, name: name, type: "git"};
-            this.push('applicationData.repoArray', repo);
-            this.$.toastNotify.text = "Repo added!";
-            this.$.toastNotify.open();
-            this._updateApplicationData();
+            if(!this._findRepoWithMatchingUrl(remote)){
+                clone(remote, dest);
+                this.$.cloneDialog.toggle();
+                // covering up for polymer jank
+                if(this.applicationData.repoArray.length == 0){
+                    this.set('applicationData.repoArray', [repo]);
+                }
+                else{
+                    this.push('applicationData.repoArray', repo);
+                }
+                this.$.toastNotify.text = "Repo added!";
+                this.$.toastNotify.open();
+                this._updateApplicationData();
+            }
+            else{
+                this.$.toastNotify.text = "Repo already exists!";
+                this.$.toastNotify.open();
+            }
 
+        },
+
+        _findRepoWithMatchingUrl: function (url) {
+            // checks if we have the repo with the same url
+            return _.find(this.applicationData.repoArray, 'url', url);
         },
 
         _pingGoogle: function () {
@@ -293,15 +320,21 @@
             var OSType = "Not Supported";
             if (window.navigator.appVersion.indexOf("Win") != -1){
                 OSType = "Windows";
+                this.DATA_PATH.WRITE = "./resources/app/data.json";
+                this.DATA_PATH.READ = "./data.json";
                 //possibly set this.OS_SLASH
             }
             else if (window.navigator.appVersion.indexOf("Mac") != -1){
                 OSType = "MacOS";
+                this.DATA_PATH.WRITE = "data.json";
+                this.DATA_PATH.READ = "data.json";
                 //possibly set this.OS_SLASH
             }
             else if (window.navigator.appVersion.indexOf("Linux") != -1){
                 OSType = "Linux";
                 //possibly set this.OS_SLASH
+                this.DATA_PATH.WRITE = "data.json";
+                this.DATA_PATH.READ = "data.json";
             }
 
             //write the OS Type to file
@@ -309,11 +342,21 @@
         },
 
         ready: function (e) {
-            this._retrieveApplicationDataFromJSON();
-            if(!this.applicationData.OS){
-                this._osCheck();
+            this._osCheck();
+            // check if we have data.JSON
+            if (fs.existsSync(this.DATA_PATH.WRITE)) {
+                // .then means that everything within is executed after any and ALL (even asynchronous) calls are completed
+                this._retrieveApplicationDataFromJSON().then(function(){
+                    if(!this.applicationData.repoArray){
+                        this.applicationData.repoArray = [];
+                    }
+                }.bind(this));
+            }
+            else{
+                this.applicationData.repoArray = [];
                 this._updateApplicationData();
             }
+
         },
     });
 
