@@ -169,7 +169,7 @@
             <div id="repoContainer" style="display: flex; align-items: flex-end">
                 <paper-dropdown-menu class="selector" id="repoSelector" label="Repository Selection">
                     <paper-listbox class="dropdown-content">
-                        <template is="dom-repeat" items="{{repoArray}}">
+                        <template is="dom-repeat" items="{{applicationData.repoArray}}">
                             <paper-item>{{item.name}}</paper-item>
                         </template>
                     </paper-listbox>
@@ -216,28 +216,39 @@
             applicationData: {
                 type: Object,
                 value: {
-
-                }
-            },
-            repoArray: {
-                type: Array,
-                value: function () {
-                    return [];
+                    repoArray: [],
+                    OS: "",
                 }
             },
             repoFormDestination: {
                 type: String,
                 value: ""
             },
+
             // path in the filesystem to current repo
-            currentRepoPath: String,
+            currentRepoPath:{
+                type: String,
+                value: ""
+            },
+
             // list of remote branches for current repo
             remoteBranches: {
                 type: Array,
                 value: function () {
                     return [];
                 }
-            }
+            },
+            OS_SLASH: {
+                type: String,
+                value: "/"
+            },
+            DATA_PATH: {
+                type: Object,
+                value: {
+                    READ: "",
+                    WRITE: "",
+                }
+            },
 
         },
 
@@ -272,22 +283,22 @@
             console.log(this.remoteBranches);
         },
 
-        _updateApplicationData: function() {
-            var file = '.\\resources\\app\\data.json';
-            // add appended properties
-            this.applicationData.repoArray = this.repoArray;
 
-            jsonfile.writeFile(file, {applicationData:this.applicationData}, function (err) {
+        _updateApplicationData: function() {
+            jsonfile.writeFile(this.DATA_PATH.WRITE, {applicationData:this.applicationData}, function (err) {
                 if(err){
                     console.error(err);
                 }
             });
         },
 
-        _retrieveRepoArrayFromJSON: function() {
-            $.getJSON(".\\data.json", function(json) {
-                this.set('repoArray', json.applicationData.repoArray);
-            }.bind(this));
+        _retrieveApplicationDataFromJSON: function() {
+            // Promises are magic. That's all I know
+            return Promise.all([
+                $.getJSON(this.DATA_PATH.READ, function(json) {
+                    this.set('applicationData', json.applicationData);
+                }.bind(this)),
+            ]);
         },
 
         _clearCloneInput: function () {
@@ -308,15 +319,32 @@
             console.log(navigator);
             var remote = this.$.cloneRemote.value;
             var name = remote.split("/").pop().split(".")[0];
-            var dest = this.$.cloneDest.value + "/"+name+"/";
-            clone(remote, dest);
-            this.$.cloneDialog.toggle();
+            var dest = "\"" + this.$.cloneDest.value + this.OS_SLASH + name + this.OS_SLASH + "\""; //added quotes around file path to account for files with spaces
             var repo = {url: remote, destination: dest, name: name, type: "git"};
-            this.push('repoArray', repo);
-            this.$.toastNotify.text = "Repo added!";
-            this.$.toastNotify.open();
-            this._updateApplicationData();
+            if(!this._findRepoWithMatchingUrl(remote)){
+                clone(remote, dest);
+                this.$.cloneDialog.toggle();
+                // covering up for polymer jank
+                if(this.applicationData.repoArray.length == 0){
+                    this.set('applicationData.repoArray', [repo]);
+                }
+                else{
+                    this.push('applicationData.repoArray', repo);
+                }
+                this.$.toastNotify.text = "Repo added!";
+                this.$.toastNotify.open();
+                this._updateApplicationData();
+            }
+            else{
+                this.$.toastNotify.text = "Repo already exists!";
+                this.$.toastNotify.open();
+            }
 
+        },
+
+        _findRepoWithMatchingUrl: function (url) {
+            // checks if we have the repo with the same url
+            return _.find(this.applicationData.repoArray, 'url', url);
         },
 
         _pingGoogle: function () {
@@ -341,8 +369,47 @@
             }.bind(this));
         },
 
+        _osCheck: function () {
+            var OSType = "Not Supported";
+            if (window.navigator.appVersion.indexOf("Win") != -1){
+                OSType = "Windows";
+                this.DATA_PATH.WRITE = "./resources/app/data.json";
+                this.DATA_PATH.READ = "./data.json";
+                //possibly set this.OS_SLASH
+            }
+            else if (window.navigator.appVersion.indexOf("Mac") != -1){
+                OSType = "MacOS";
+                this.DATA_PATH.WRITE = "data.json";
+                this.DATA_PATH.READ = "data.json";
+                //possibly set this.OS_SLASH
+            }
+            else if (window.navigator.appVersion.indexOf("Linux") != -1){
+                OSType = "Linux";
+                //possibly set this.OS_SLASH
+                this.DATA_PATH.WRITE = "data.json";
+                this.DATA_PATH.READ = "data.json";
+            }
+
+            //write the OS Type to file
+            this.applicationData.OS = OSType;
+        },
+
         ready: function (e) {
-            this._retrieveRepoArrayFromJSON();
+            this._osCheck();
+            // check if we have data.JSON
+            if (fs.existsSync(this.DATA_PATH.WRITE)) {
+                // .then means that everything within is executed after any and ALL (even asynchronous) calls are completed
+                this._retrieveApplicationDataFromJSON().then(function(){
+                    if(!this.applicationData.repoArray){
+                        this.applicationData.repoArray = [];
+                    }
+                }.bind(this));
+            }
+            else{
+                this.applicationData.repoArray = [];
+                this._updateApplicationData();
+            }
+
         },
     });
 
