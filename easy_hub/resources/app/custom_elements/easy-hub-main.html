@@ -131,7 +131,7 @@
                 <paper-icon-button icon="icons:add" on-tap="_toggleClone">Add Repo</paper-icon-button>
                 <paper-dropdown-menu class="custom" id="branchSelector" disabled="{{!repoSelected}}" label="Branch Selection">
                     <paper-listbox class="dropdown-content">
-                        <template is="dom-repeat" items="{{currentRepoBranches}}">
+                        <template is="dom-repeat" items="{{currentRepo.branches}}">
                             <paper-item>{{item.name}}</paper-item>
                         </template>
                     </paper-listbox>
@@ -179,9 +179,9 @@
             },
 
             // path in the filesystem to current repo
-            currentRepoPath:{
-                type: String,
-                value: ""
+            currentRepo:{
+                type: Object,
+                value: {}
             },
 
             // list of remote branches for current repo
@@ -220,15 +220,17 @@
             // get selected repo
             var label = this.$.repoSelector.selectedItemLabel;
             // get path of selected repo
-            this.currentRepoPath = this.getRepoByName(label).destination;
+            this.currentRepo = this.getRepoByName(label);
+            this.currentRepo.branches = [];
+            var branches = []
 
-            this.currentRepoBranches = [];
-            var remotes = String(execute_sync('git branch -r', this.currentRepoPath)).split("\n");
+            var remotes = String(execute_sync('git branch -r', this.currentRepo.destination+this.currentRepo.name)).split("\n");
             for (var i = 0; i < remotes.length; i++){
                 if(remotes[i]){
-                    this.push('currentRepoBranches', {name: remotes[i]});
+                    branches.push({name:remotes[i]});
                 }
             }
+            this.set('currentRepo.branches', branches);
         },
 
 
