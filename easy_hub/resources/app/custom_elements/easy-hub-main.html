@@ -174,14 +174,14 @@
                         </template>
                     </paper-listbox>
                 </paper-dropdown-menu>
+                <paper-icon-button icon="icons:add" on-tap="_toggleClone">Add Repo</paper-icon-button>
                 <paper-dropdown-menu class="selector" id="branchSelector" label="Branch Selection">
                     <paper-listbox class="dropdown-content">
-                        <template is="dom-repeat" items="{{remoteBranches}}">
+                        <template is="dom-repeat" items="{{currentRepoBranches}}">
                             <paper-item>{{item.name}}</paper-item>
                         </template>
                     </paper-listbox>
                 </paper-dropdown-menu>
-                <paper-icon-button icon="icons:add" on-tap="_toggleClone">Add Repo</paper-icon-button>
             </div>
         </div>
         <div id="repoCommands" style="display: flex; justify-content: center">
@@ -189,7 +189,6 @@
             <paper-button raised class="commandButton">Pull</paper-button>
             <paper-button raised class="commandButton">Commit</paper-button>
             <paper-button raised class="commandButton">Merge</paper-button>
-            <paper-button raised on-tap="_updateRemoteBranches" class="commandButton">Update Remotes</paper-button>
             <paper-button raised on-tap="_pingGoogle" class="commandButton">ping google</paper-button>
         </div>
         <!--<button type="button" onclick="file('zack','git','data.json')">save </button>-->
@@ -209,7 +208,7 @@
 
         listeners: {
             'cloneDialog.iron-overlay-closed': '_clearCloneInput',
-            'repoSelector.iron-select': '_updateCurrentRepoPath',
+            'repoSelector.iron-select': '_updateCurrentRepoInfo',
         },
 
         properties: {
@@ -252,35 +251,24 @@
 
         },
 
+
         /**
-         * sets the current repo path when a different repo is selected by the user
+         * update the current repo information
+         * @private
          */
-        _updateCurrentRepoPath: function() {
+        _updateCurrentRepoInfo: function() {
             // get selected repo
             var label = this.$.repoSelector.selectedItemLabel;
             // get path of selected repo
-            for(i=0;i<this.repoArray.length;i++) {
-                var name = String(this.repoArray[i].name);
-                if (name == label) {
-                    this.currentRepoPath = String(this.repoArray[i].destination);
-                    break;
+            this.currentRepoPath = this.getRepoByName(label).destination.replace(/"/g,"");  // it's regex
+
+            this.currentRepoBranches = [];
+            var remotes = String(execute_sync('git branch -r', this.currentRepoPath)).split("\n");
+            for (var i = 0; i < remotes.length; i++){
+                if(remotes[i]){
+                    this.push('currentRepoBranches', {name: remotes[i]});
                 }
             }
-        },
-
-        /**
-         * update the remote branches for the current repository
-         * dependant on the current repo path being set prior to execution (hardcoded for now)
-         * @private
-         */
-        _updateRemoteBranches: function() {
-            this.remoteBranches = [];
-            var remotes = String(execute_sync('git branch -r', this.currentRepoPath)).split("\n");
-
-            for (i=0;i<remotes.length;i++){
-                this.remoteBranches.push(remotes[i]);
-            }
-            console.log(this.remoteBranches);
         },
 
 
@@ -321,7 +309,7 @@
             var name = remote.split("/").pop().split(".")[0];
             var dest = "\"" + this.$.cloneDest.value + this.OS_SLASH + name + this.OS_SLASH + "\""; //added quotes around file path to account for files with spaces
             var repo = {url: remote, destination: dest, name: name, type: "git"};
-            if(!this._findRepoWithMatchingUrl(remote)){
+            if(!this.getRepoByUrl(remote)){
                 clone(remote, dest);
                 this.$.cloneDialog.toggle();
                 // covering up for polymer jank
@@ -342,9 +330,15 @@
 
         },
 
-        _findRepoWithMatchingUrl: function (url) {
-            // checks if we have the repo with the same url
+        getRepoByUrl: function (url) {
             return _.find(this.applicationData.repoArray, 'url', url);
+        },
+
+        getRepoByPath: function (path) {
+            return _.find(this.applicationData.repoArray, 'destination', path);
+        },
+        getRepoByName: function (name) {
+            return _.find(this.applicationData.repoArray, 'name', name);
         },
 
         _pingGoogle: function () {
