@@ -16,55 +16,12 @@
 </head>
 
 <dom-module id="easy-hub-main">
-    <style>
+    <style is="custom-style">
         /* CSS rules for your element */
         #mainContainer {
             display: flex;
             justify-content: center;
             align-items: center;
-        }
-
-        #headerBar {
-            width: 100%;
-            position: absolute;
-            height: 20px;
-            background-color: silver;
-            list-style-type: none;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            top: 0;
-            bottom: 0;
-            left: 0;
-        }
-
-        ul {
-            list-style-type: none;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background-color: #333;
-        }
-
-        li {
-            float: left;
-        }
-
-        /*#repoSelector ::content #paper-input-label-1{
-        color: white;
-        }*/
-
-        #repoSelector {
-            display: flex;
-            justify-content: space-around;
-        }
-
-        .headerButton {
-            height: 10px;
-            padding: 9px;
-            text-transform: none;
-            margin: 0px;
-            min-width: 0;
         }
 
         .commandButton {
@@ -78,37 +35,20 @@
             top: 10px;
         }
         #cloneDialog {
-            min-width: 450px;
-            max-width: 600px;
+            width: 400px;
+            padding-top: 20px;
         }
         #mainWrap {
             display: flex;
             padding-right: 0px;
         }
-
         #repoSource {
             float: left;
-            width: 40%;
-        }
-        #add {
-            float: left;
-            display: flex;
-            width: 15%;
-            padding-top: 40px;
-            padding-bottom: 40px;
-            padding-left: 20px;
-            padding-right: 30px;
+            width: 60%;
         }
         #createLocal {
-            float: right;
             display: flex;
-            justify-content: center;
-            width: 45%;
-            padding-top: 40px;
-            padding-bottom: 40px;
-            padding-left: 0px;
-            padding-right: 20px;
-            max-height: 44px;
+            align-items: center;
         }
         #verticalLine {
             border-left: thick solid black;
@@ -117,28 +57,48 @@
             background-color: purple;
             color: lightgray;
         }
-        #okCancel {
-            font-size: 10px;
-            padding: 0px;
-            width: 100%;
-            display: flex;
-            justify-content: space-around;
-            padding-bottom: 5px;
-            margin: 0px;
-
-        }
         #cloneDest ::content #input{
             text-overflow: ellipsis;
         }
-
-
-        li paper-button:hover {
-            box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+        paper-dropdown-menu {
+            display: flex;
+            justify-content: space-around;
+            --paper-input-container-input: {
+                color: var(--paper-blue-grey-50);
+            };
+            --paper-input-container-label: {
+                color: white;
+            };
+            --paper-input-container-input: {
+                color: white;
+            };
+            --paper-input-container-label-focus: {
+                color: white;
+            };
+            --paper-input-container-label-floating: {
+                color: white;
+            };
+            --paper-input-container-underline: {
+                color: white;
+            };
+            --paper-input-container-underline-focus: {
+                color: white;
+            };
+            --paper-input-container-underline-focus: {
+                display: none;
+            };
+            --paper-input-container-underline-disabled: {
+                display: none;
+            };
+        }
+        paper-dropdown-menu ::content #dropdown{
+            top: 53px !important;
         }
     </style>
     <template>
         <paper-toast id="toastNotify" text="placeholder"></paper-toast>
         <paper-dialog id="cloneDialog" modal>
+            <paper-icon-button icon="icons:close" dialog-dismiss style="margin-top: 0px; top: 0px; position: absolute; right: 0px;"></paper-icon-button>
             <h2>Clone Repository</h2>
             <div id="mainWrap">
                 <div id="repoSource">
@@ -149,25 +109,19 @@
                         <paper-input id="cloneDest" readonly label="Destination Directory" value="{{repoFormDestination}}"></paper-input>
                         <paper-icon-button icon="icons:folder" on-tap="_openFolderDialog">Add Repo</paper-icon-button>
                     </div>
-                </div>
-                <div id="add">
-                    <paper-button raised class="cloneButton" on-tap="_clone">add</paper-button>
+                    <paper-button raised class="cloneButton" on-tap="_clone" style="margin-top: 15px;">add</paper-button>
                 </div>
                 <div id="verticalLine"></div>
                 <div id="createLocal">
-                    <paper-button raised class="cloneButton" on-tap="_initLocal">create local</paper-button>
+                    <paper-button raised class="cloneButton"  on-tap="_initLocal" style="height: 40px">create local</paper-button>
                 </div>
-            </div>
-            <div id="okCancel";>
-                <!--<paper-button dialog-confirm on-tap="_clone" class="cloneButton">Ok</paper-button>-->
-                <paper-button dialog-dismiss on-tap="_toggleClone" class="cloneButton">Cancel</paper-button>
             </div>
         </paper-dialog>
 
         <div id="mainContainer">
             <paper-button id="statusButton" style="min-width: 2px;"></paper-button>
             <div id="repoContainer" style="display: flex; align-items: flex-end">
-                <paper-dropdown-menu id="repoSelector" label="Repository Selection">
+                <paper-dropdown-menu class="custom" id="repoSelector" label="Repository Selection">
                     <paper-listbox class="dropdown-content">
                         <template is="dom-repeat" items="{{applicationData.repoArray}}">
                             <paper-item>{{item.name}}</paper-item>
@@ -175,6 +129,13 @@
                     </paper-listbox>
                 </paper-dropdown-menu>
                 <paper-icon-button icon="icons:add" on-tap="_toggleClone">Add Repo</paper-icon-button>
+                <paper-dropdown-menu class="custom" id="branchSelector" disabled="{{!repoSelected}}" label="Branch Selection">
+                    <paper-listbox class="dropdown-content">
+                        <template is="dom-repeat" items="{{currentRepoBranches}}">
+                            <paper-item>{{item.name}}</paper-item>
+                        </template>
+                    </paper-listbox>
+                </paper-dropdown-menu>
             </div>
         </div>
         <div id="repoCommands" style="display: flex; justify-content: center">
@@ -201,6 +162,7 @@
 
         listeners: {
             'cloneDialog.iron-overlay-closed': '_clearCloneInput',
+            'repoSelector.iron-select': '_updateCurrentRepoInfo',
         },
 
         properties: {
@@ -215,6 +177,20 @@
                 type: String,
                 value: ""
             },
+
+            // path in the filesystem to current repo
+            currentRepoPath:{
+                type: String,
+                value: ""
+            },
+
+            // list of remote branches for current repo
+            remoteBranches: {
+                type: Array,
+                value: function () {
+                    return [];
+                }
+            },
             OS_SLASH: {
                 type: String,
                 value: "/"
@@ -227,7 +203,32 @@
                 }
             },
 
+            repoSelected: {
+                type: Boolean,
+                value: false
+            }
 
+        },
+
+
+        /**
+         * update the current repo information
+         * @private
+         */
+        _updateCurrentRepoInfo: function() {
+            this.set('repoSelected', true);
+            // get selected repo
+            var label = this.$.repoSelector.selectedItemLabel;
+            // get path of selected repo
+            this.currentRepoPath = this.getRepoByName(label).destination.replace(/"/g,"");  // it's regex
+
+            this.currentRepoBranches = [];
+            var remotes = String(execute_sync('git branch -r', this.currentRepoPath)).split("\n");
+            for (var i = 0; i < remotes.length; i++){
+                if(remotes[i]){
+                    this.push('currentRepoBranches', {name: remotes[i]});
+                }
+            }
         },
 
 
@@ -268,7 +269,7 @@
             var name = remote.split("/").pop().split(".")[0];
             var dest = "\"" + this.$.cloneDest.value + this.OS_SLASH + name + this.OS_SLASH + "\""; //added quotes around file path to account for files with spaces
             var repo = {url: remote, destination: dest, name: name, type: "git"};
-            if(!this._findRepoWithMatchingUrl(remote)){
+            if(!this.getRepoByUrl(remote)){
                 clone(remote, dest);
                 this.$.cloneDialog.toggle();
                 // covering up for polymer jank
@@ -289,9 +290,15 @@
 
         },
 
-        _findRepoWithMatchingUrl: function (url) {
-            // checks if we have the repo with the same url
+        getRepoByUrl: function (url) {
             return _.find(this.applicationData.repoArray, 'url', url);
+        },
+
+        getRepoByPath: function (path) {
+            return _.find(this.applicationData.repoArray, 'destination', path);
+        },
+        getRepoByName: function (name) {
+            return _.find(this.applicationData.repoArray, 'name', name);
         },
 
         _pingGoogle: function () {
@@ -360,17 +367,30 @@
         },
     });
 
+    /**
+     * attempts to initialize a git repository
+     * @param dest - path to new repository on local filesystem
+     */
     function init(dest) {
         var baseCmd = 'cd ' + dest + '; ' + 'git init';
         execute(baseCmd);
     }
 
+    /**
+     * attempts to clone a remote git repository
+     * @param remote - address of remote repository
+     * @param dest - path to new repository on local filesystem
+     */
     function clone(remote, dest) {
         var baseCmd = 'git clone ';
         baseCmd += remote + ' ' + dest;
         execute(baseCmd);
     }
 
+    /**
+     * asynchronously executes a command in the terminal, logs output to console
+     * @param command - command to be executed
+     */
     function execute(command) {
         var exec = require('child_process').exec;
         exec(command, function (error, stdout, stderr) {
@@ -380,6 +400,16 @@
                 console.log('exec error: ' + error);
             }
         });
+    }
+
+    /**
+     *
+     * @param command
+     * @param dir
+     * @returns {*}
+     */
+    function execute_sync(command, dir) {
+        return require('child_process').execSync(command, {cwd:dir});
     }
 </script>
 
