@@ -397,8 +397,9 @@
      * @param dest - path to new repository on local filesystem
      */
     function clone(remote, dest) {
-        var a = String(execute_sync('git clone '+remote, dest));
-        console.log(a);
+        var baseCmd = 'git clone ';
+        baseCmd += remote + ' ' + dest;
+        execute(baseCmd);
     }
 
     /**
