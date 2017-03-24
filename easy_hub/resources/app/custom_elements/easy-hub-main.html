@@ -220,7 +220,7 @@
             // get selected repo
             var label = this.$.repoSelector.selectedItemLabel;
             // get path of selected repo
-            this.currentRepoPath = this.getRepoByName(label).destination.replace(/"/g,"");  // it's regex
+            this.currentRepoPath = this.getRepoByName(label).destination;
 
             this.currentRepoBranches = [];
             var remotes = String(execute_sync('git branch -r', this.currentRepoPath)).split("\n");
@@ -263,28 +263,41 @@
             init(dest);
         },
 
+        _cloneInfoIsValid: function () {
+            if(this.$.cloneDest.value && this.$.cloneRemote.value){
+                var gitUrlRegex = /(?:git|ssh|https?|git@[\w\.]+):(?:\/\/)?[\w\.@:\/~_-]+\.git(?:\/?|\#[\d\w\.\-_]+?)$/;
+                return gitUrlRegex.test(this.$.cloneRemote.value);
+            }
+        },
+
         _clone: function() {
-            console.log(navigator);
-            var remote = this.$.cloneRemote.value;
-            var name = remote.split("/").pop().split(".")[0];
-            var dest = "\"" + this.$.cloneDest.value + this.OS_SLASH + name + this.OS_SLASH + "\""; //added quotes around file path to account for files with spaces
-            var repo = {url: remote, destination: dest, name: name, type: "git"};
-            if(!this.getRepoByUrl(remote)){
-                clone(remote, dest);
-                this.$.cloneDialog.toggle();
-                // covering up for polymer jank
-                if(this.applicationData.repoArray.length == 0){
-                    this.set('applicationData.repoArray', [repo]);
+            if(this._cloneInfoIsValid()){
+                console.log(navigator);
+                var remote = this.$.cloneRemote.value;
+                var name = remote.split("/").pop().split(".")[0];
+                var dest = this.$.cloneDest.value + this.OS_SLASH;
+                var repo = {url: remote, destination: dest, name: name, type: "git"};
+                if(!this.getRepoByUrl(remote)){
+                    clone(remote, dest);
+                    this.$.cloneDialog.toggle();
+                    // covering up for polymer jank
+                    if(this.applicationData.repoArray.length == 0){
+                        this.set('applicationData.repoArray', [repo]);
+                    }
+                    else{
+                        this.push('applicationData.repoArray', repo);
+                    }
+                    this.$.toastNotify.text = "Repo added!";
+                    this.$.toastNotify.open();
+                    this._updateApplicationData();
                 }
                 else{
-                    this.push('applicationData.repoArray', repo);
+                    this.$.toastNotify.text = "Repo already exists!";
+                    this.$.toastNotify.open();
                 }
-                this.$.toastNotify.text = "Repo added!";
-                this.$.toastNotify.open();
-                this._updateApplicationData();
             }
             else{
-                this.$.toastNotify.text = "Repo already exists!";
+                this.$.toastNotify.text = "Invalid repo information ya silly cactus!";
                 this.$.toastNotify.open();
             }
 
@@ -382,9 +395,8 @@
      * @param dest - path to new repository on local filesystem
      */
     function clone(remote, dest) {
-        var baseCmd = 'git clone ';
-        baseCmd += remote + ' ' + dest;
-        execute(baseCmd);
+        var a = String(execute_sync('git clone '+remote, dest));
+        console.log(a);
     }
 
     /**
