@@ -177,13 +177,11 @@
                 type: String,
                 value: ""
             },
-
             // path in the filesystem to current repo
             currentRepo:{
                 type: Object,
                 value: {}
             },
-
             // list of remote branches for current repo
             remoteBranches: {
                 type: Array,
@@ -202,14 +200,11 @@
                     WRITE: "",
                 }
             },
-
             repoSelected: {
                 type: Boolean,
                 value: false
             }
-
         },
-
 
         /**
          * update the current repo information
@@ -224,7 +219,7 @@
             this.currentRepo.branches = [];
             var branches = []
 
-            var remotes = String(execute_sync('git branch -r', this.currentRepo.destination+this.currentRepo.name)).split("\n");
+            var remotes = gitUtils.getRemoteBranches(this.currentRepo.destination+this.currentRepo.name);
             for (var i = 0; i < remotes.length; i++){
                 if(remotes[i]){
                     branches.push({name:remotes[i]});
@@ -261,8 +256,7 @@
         },
 
         _initLocal: function() {
-            var dest = this.$.cloneDest.value;
-            init(dest);
+            gitUtils.init(this.$.cloneDest.value);
         },
 
         _cloneInfoIsValid: function () {
@@ -280,7 +274,7 @@
                 var dest = this.$.cloneDest.value + this.OS_SLASH;
                 var repo = {url: remote, destination: dest, name: name, type: "git"};
                 if(!this.getRepoByUrl(remote)){
-                    clone(remote, dest);
+                    gitUtils.clone(remote, dest);
                     this.$.cloneDialog.toggle();
                     // covering up for polymer jank
                     if(this.applicationData.repoArray.length == 0){
@@ -316,18 +310,6 @@
             return _.find(this.applicationData.repoArray, 'name', name);
         },
 
-        _pingGoogle: function () {
-            var exec = require('child_process').exec;
-            exec('ping www.google.com', function (error, stdout, stderr) {
-                console.log('stdout: ' + stdout);
-                console.log('stderr: ' + stderr);
-                if (error !== null) {
-                    console.log('exec error: ' + error);
-                }
-
-            });
-
-        },
         _openFolderDialog: function () {
             dialog.showOpenDialog({
                 title:"Select a folder",
@@ -381,50 +363,5 @@
 
         },
     });
-
-    /**
-     * attempts to initialize a git repository
-     * @param dest - path to new repository on local filesystem
-     */
-    function init(dest) {
-        var baseCmd = 'cd ' + dest + '; ' + 'git init';
-        execute(baseCmd);
-    }
-
-    /**
-     * attempts to clone a remote git repository
-     * @param remote - address of remote repository
-     * @param dest - path to new repository on local filesystem
-     */
-    function clone(remote, dest) {
-        var baseCmd = 'git clone ';
-        baseCmd += remote + ' ' + dest;
-        execute(baseCmd);
-    }
-
-    /**
-     * asynchronously executes a command in the terminal, logs output to console
-     * @param command - command to be executed
-     */
-    function execute(command) {
-        var exec = require('child_process').exec;
-        exec(command, function (error, stdout, stderr) {
-            console.log('stdout: ' + stdout);
-            console.log('stderr: ' + stderr);
-            if (error !== null) {
-                console.log('exec error: ' + error);
-            }
-        });
-    }
-
-    /**
-     *
-     * @param command
-     * @param dir
-     * @returns {*}
-     */
-    function execute_sync(command, dir) {
-        return require('child_process').execSync(command, {cwd:dir});
-    }
 </script>
 
