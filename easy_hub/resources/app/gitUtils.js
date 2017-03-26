@@ -140,7 +140,7 @@ function spawn_sync(command, args, options) {
     }
     if(!args){args = []};
     var proc = child_process.spawnSync(command, options);
-    return proc.exitCode;
+    return proc;
 
 }
 
