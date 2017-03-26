@@ -131,7 +131,7 @@
                 <paper-icon-button icon="icons:add" on-tap="_toggleClone">Add Repo</paper-icon-button>
                 <paper-dropdown-menu class="custom" id="branchSelector" disabled="{{!repoSelected}}" label="Branch Selection">
                     <paper-listbox class="dropdown-content">
-                        <template is="dom-repeat" items="{{currentRepoBranches}}">
+                        <template is="dom-repeat" items="{{currentRepo.branches}}">
                             <paper-item>{{item.name}}</paper-item>
                         </template>
                     </paper-listbox>
@@ -177,13 +177,11 @@
                 type: String,
                 value: ""
             },
-
             // path in the filesystem to current repo
-            currentRepoPath:{
-                type: String,
-                value: ""
+            currentRepo:{
+                type: Object,
+                value: {}
             },
-
             // list of remote branches for current repo
             remoteBranches: {
                 type: Array,
@@ -195,6 +193,10 @@
                 type: String,
                 value: "/"
             },
+            OS_SHELL: {
+                type: String,
+                value: "cmd"
+            },
             DATA_PATH: {
                 type: Object,
                 value: {
@@ -202,14 +204,11 @@
                     WRITE: "",
                 }
             },
-
             repoSelected: {
                 type: Boolean,
                 value: false
             }
-
         },
-
 
         /**
          * update the current repo information
@@ -220,15 +219,17 @@
             // get selected repo
             var label = this.$.repoSelector.selectedItemLabel;
             // get path of selected repo
-            this.currentRepoPath = this.getRepoByName(label).destination.replace(/"/g,"");  // it's regex
+            this.currentRepo = this.getRepoByName(label);
+            this.currentRepo.branches = [];
+            var branches = []
 
-            this.currentRepoBranches = [];
-            var remotes = String(execute_sync('git branch -r', this.currentRepoPath)).split("\n");
+            var remotes = gitUtils.getRemoteBranches(this.currentRepo.destination+this.currentRepo.name);
             for (var i = 0; i < remotes.length; i++){
                 if(remotes[i]){
-                    this.push('currentRepoBranches', {name: remotes[i]});
+                    branches.push({name:remotes[i]});
                 }
             }
+            this.set('currentRepo.branches', branches);
         },
 
 
@@ -259,32 +260,47 @@
         },
 
         _initLocal: function() {
-            var dest = this.$.cloneDest.value;
-            init(dest);
+            gitUtils.init(this.$.cloneDest.value);
+        },
+
+        _cloneInfoIsValid: function () {
+            if(this.$.cloneDest.value && this.$.cloneRemote.value){
+                var gitUrlRegex = /(?:git|ssh|https?|git@[\w\.]+):(?:\/\/)?[\w\.@:\/~_-]+\.git(?:\/?|\#[\d\w\.\-_]+?)$/;
+                return gitUrlRegex.test(this.$.cloneRemote.value);
+            }
         },
 
         _clone: function() {
-            console.log(navigator);
-            var remote = this.$.cloneRemote.value;
-            var name = remote.split("/").pop().split(".")[0];
-            var dest = "\"" + this.$.cloneDest.value + this.OS_SLASH + name + this.OS_SLASH + "\""; //added quotes around file path to account for files with spaces
-            var repo = {url: remote, destination: dest, name: name, type: "git"};
-            if(!this.getRepoByUrl(remote)){
-                clone(remote, dest);
-                this.$.cloneDialog.toggle();
-                // covering up for polymer jank
-                if(this.applicationData.repoArray.length == 0){
-                    this.set('applicationData.repoArray', [repo]);
+            if(this._cloneInfoIsValid()){
+                var remote = this.$.cloneRemote.value;
+                var name = remote.split("/").pop().split(".")[0];
+                var dest = this.$.cloneDest.value + this.OS_SLASH;
+                var repo = {url: remote, destination: dest, name: name, type: "git"};
+                if(!this.getRepoByUrl(remote)){
+                    if(gitUtils.clone(remote, dest, this.OS_SHELL).status == 0){
+                        this.$.cloneDialog.toggle();
+                        if(this.applicationData.repoArray.length == 0){
+                            this.set('applicationData.repoArray', [repo]);
+                        }
+                        else{
+                            this.push('applicationData.repoArray', repo);
+                        }
+                        this.$.toastNotify.text = "Repo added!";
+                        this.$.toastNotify.open();
+                        this._updateApplicationData();
+                    }
+                    else{
+                        this.$.toastNotify.text = "Error cloning repo!";
+                        this.$.toastNotify.open();
+                    }
                 }
                 else{
-                    this.push('applicationData.repoArray', repo);
+                    this.$.toastNotify.text = "Repo already exists!";
+                    this.$.toastNotify.open();
                 }
-                this.$.toastNotify.text = "Repo added!";
-                this.$.toastNotify.open();
-                this._updateApplicationData();
             }
             else{
-                this.$.toastNotify.text = "Repo already exists!";
+                this.$.toastNotify.text = "Invalid repo information ya silly cactus!";
                 this.$.toastNotify.open();
             }
 
@@ -301,18 +317,6 @@
             return _.find(this.applicationData.repoArray, 'name', name);
         },
 
-        _pingGoogle: function () {
-            var exec = require('child_process').exec;
-            exec('ping www.google.com', function (error, stdout, stderr) {
-                console.log('stdout: ' + stdout);
-                console.log('stderr: ' + stderr);
-                if (error !== null) {
-                    console.log('exec error: ' + error);
-                }
-
-            });
-
-        },
         _openFolderDialog: function () {
             dialog.showOpenDialog({
                 title:"Select a folder",
@@ -329,6 +333,7 @@
                 OSType = "Windows";
                 this.DATA_PATH.WRITE = "./resources/app/data.json";
                 this.DATA_PATH.READ = "./data.json";
+                this.OS_SHELL = "cmd.exe";
                 //possibly set this.OS_SLASH
             }
             else if (window.navigator.appVersion.indexOf("Mac") != -1){
@@ -342,6 +347,7 @@
                 //possibly set this.OS_SLASH
                 this.DATA_PATH.WRITE = "data.json";
                 this.DATA_PATH.READ = "data.json";
+                this.OS_SHELL = "/bin/bash";
             }
 
             //write the OS Type to file
@@ -366,50 +372,5 @@
 
         },
     });
-
-    /**
-     * attempts to initialize a git repository
-     * @param dest - path to new repository on local filesystem
-     */
-    function init(dest) {
-        var baseCmd = 'cd ' + dest + '; ' + 'git init';
-        execute(baseCmd);
-    }
-
-    /**
-     * attempts to clone a remote git repository
-     * @param remote - address of remote repository
-     * @param dest - path to new repository on local filesystem
-     */
-    function clone(remote, dest) {
-        var baseCmd = 'git clone ';
-        baseCmd += remote + ' ' + dest;
-        execute(baseCmd);
-    }
-
-    /**
-     * asynchronously executes a command in the terminal, logs output to console
-     * @param command - command to be executed
-     */
-    function execute(command) {
-        var exec = require('child_process').exec;
-        exec(command, function (error, stdout, stderr) {
-            console.log('stdout: ' + stdout);
-            console.log('stderr: ' + stderr);
-            if (error !== null) {
-                console.log('exec error: ' + error);
-            }
-        });
-    }
-
-    /**
-     *
-     * @param command
-     * @param dir
-     * @returns {*}
-     */
-    function execute_sync(command, dir) {
-        return require('child_process').execSync(command, {cwd:dir});
-    }
 </script>
 

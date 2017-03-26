@@ -6,6 +6,7 @@ const url = require('url');
 const jsonfile = require('jsonfile');
 const fs = require('fs');
 const _ = require('lodash');  // lodash API, really powerful stuff for js objects. Look at docs or ask Ben for info
+const child_process = require('child_process');
 
 
 // Keep a global reference of the window object, if you don't, the window will
