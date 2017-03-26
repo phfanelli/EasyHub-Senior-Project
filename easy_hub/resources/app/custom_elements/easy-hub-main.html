@@ -13,10 +13,17 @@
     <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
     <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
     <link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
+    <link rel="import" href="../bower_components/paper-input/paper-textarea.html">
+
 </head>
 
 <dom-module id="easy-hub-main">
     <style is="custom-style">
+        paper-textarea{
+            --paper-input-container-input: {
+                color: snow;
+            }
+        }
         /* CSS rules for your element */
         #mainContainer {
             display: flex;
@@ -94,6 +101,20 @@
         paper-dropdown-menu ::content #dropdown{
             top: 53px !important;
         }
+
+        #terminal{
+            text-align: left;
+            background-color: black;
+            color: snow;
+            position: absolute;
+            height: 90%;
+            width: 25%;
+            right: 12px;
+            bottom: 10px;
+            overflow-y: auto;
+
+        }
+
     </style>
     <template>
         <paper-toast id="toastNotify" text="placeholder"></paper-toast>
@@ -143,7 +164,6 @@
             <paper-button raised class="commandButton">Pull</paper-button>
             <paper-button raised class="commandButton">Commit</paper-button>
             <paper-button raised class="commandButton">Merge</paper-button>
-            <paper-button raised on-tap="_pingGoogle" class="commandButton">ping google</paper-button>
         </div>
         <!--<button type="button" onclick="file('zack','git','data.json')">save </button>-->
         <!--<div id="commandOutput">-->
@@ -152,6 +172,7 @@
         <!-- </div> -->
         <!-- TOOLTIPS -->
         <paper-tooltip for="cloneDest" offset="0">{{repoFormDestination}}</paper-tooltip>
+        <paper-textarea label="Terminal:" id="terminal" value={{consoleData}} readonly>Terminal:</br></paper-textarea>
     </template>
 </dom-module>
 <script>
@@ -207,7 +228,11 @@
             repoSelected: {
                 type: Boolean,
                 value: false
-            }
+            },
+            consoleData: {
+                type: String,
+                value:"",
+            },
         },
 
         /**
@@ -277,7 +302,8 @@
                 var dest = this.$.cloneDest.value + this.OS_SLASH;
                 var repo = {url: remote, destination: dest, name: name, type: "git"};
                 if(!this.getRepoByUrl(remote)){
-                    if(gitUtils.clone(remote, dest, this.OS_SHELL).status == 0){
+                    var cloneProc = gitUtils.clone(remote, dest, this.OS_SHELL);
+                    if(cloneProc.process.status == 0){
                         this.$.cloneDialog.toggle();
                         if(this.applicationData.repoArray.length == 0){
                             this.set('applicationData.repoArray', [repo]);
@@ -285,6 +311,7 @@
                         else{
                             this.push('applicationData.repoArray', repo);
                         }
+                        this.writeTerminal(cloneProc.command+"\n"+"Clone Successful");
                         this.$.toastNotify.text = "Repo added!";
                         this.$.toastNotify.open();
                         this._updateApplicationData();
@@ -352,6 +379,12 @@
 
             //write the OS Type to file
             this.applicationData.OS = OSType;
+        },
+
+        writeTerminal: function (input){
+            var temp = this.consoleData +"\n"+ input;
+            this.set('consoleData', temp);
+            this.$.terminal.scrollTop = Number.MAX_SAFE_INTEGER;
         },
 
         ready: function (e) {
