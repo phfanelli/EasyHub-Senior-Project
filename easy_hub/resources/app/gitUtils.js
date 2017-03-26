@@ -15,9 +15,10 @@ var gitUtils = gitUtils || {};
  * @param remote - address of remote repository
  * @param dest - path to new repository on local filesystem
  */
-gitUtils.clone = function(remote, dest) {
+gitUtils.clone = function(remote, dest, osShell) {
     var baseCmd = 'git clone ' + remote;
-    return spawn_sync(baseCmd, [], {cwd: dest});
+
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 };
 
 /**
@@ -134,8 +135,11 @@ function spawn_async(command, args, options) {
  * @param command - command to be executed
  */
 function spawn_sync(command, args, options) {
+    if(options.cwd != null && (options.cwd.includes('easy_hub') || options.cwd.includes('senior-design'))) {
+        console.error('Attempted to execute command on EasyHub repo: ' + command);
+    }
     if(!args){args = []};
-    var proc = child_process.spawn("cmd",["/c",command], options);
+    var proc = child_process.spawnSync(command, options);
     return proc.exitCode;
 
 }

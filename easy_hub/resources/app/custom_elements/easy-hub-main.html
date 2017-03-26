@@ -193,6 +193,10 @@
                 type: String,
                 value: "/"
             },
+            OS_SHELL: {
+                type: String,
+                value: "cmd"
+            },
             DATA_PATH: {
                 type: Object,
                 value: {
@@ -273,7 +277,7 @@
                 var dest = this.$.cloneDest.value + this.OS_SLASH;
                 var repo = {url: remote, destination: dest, name: name, type: "git"};
                 if(!this.getRepoByUrl(remote)){
-                    if(gitUtils.clone(remote, dest) == 0){
+                    if(gitUtils.clone(remote, dest, this.OS_SHELL) == 0){
                         this.$.cloneDialog.toggle();
                         if(this.applicationData.repoArray.length == 0){
                             this.set('applicationData.repoArray', [repo]);
@@ -329,6 +333,7 @@
                 OSType = "Windows";
                 this.DATA_PATH.WRITE = "./resources/app/data.json";
                 this.DATA_PATH.READ = "./data.json";
+                this.OS_SHELL = "cmd";
                 //possibly set this.OS_SLASH
             }
             else if (window.navigator.appVersion.indexOf("Mac") != -1){
@@ -342,6 +347,7 @@
                 //possibly set this.OS_SLASH
                 this.DATA_PATH.WRITE = "data.json";
                 this.DATA_PATH.READ = "data.json";
+                this.OS_SHELL = "/bin/bash";
             }
 
             //write the OS Type to file
