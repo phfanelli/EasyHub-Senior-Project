@@ -268,24 +268,27 @@
 
         _clone: function() {
             if(this._cloneInfoIsValid()){
-                console.log(navigator);
                 var remote = this.$.cloneRemote.value;
                 var name = remote.split("/").pop().split(".")[0];
                 var dest = this.$.cloneDest.value + this.OS_SLASH;
                 var repo = {url: remote, destination: dest, name: name, type: "git"};
                 if(!this.getRepoByUrl(remote)){
-                    gitUtils.clone(remote, dest);
-                    this.$.cloneDialog.toggle();
-                    // covering up for polymer jank
-                    if(this.applicationData.repoArray.length == 0){
-                        this.set('applicationData.repoArray', [repo]);
+                    if(gitUtils.clone(remote, dest) == 0){
+                        this.$.cloneDialog.toggle();
+                        if(this.applicationData.repoArray.length == 0){
+                            this.set('applicationData.repoArray', [repo]);
+                        }
+                        else{
+                            this.push('applicationData.repoArray', repo);
+                        }
+                        this.$.toastNotify.text = "Repo added!";
+                        this.$.toastNotify.open();
+                        this._updateApplicationData();
                     }
                     else{
-                        this.push('applicationData.repoArray', repo);
+                        this.$.toastNotify.text = "Error cloning repo!";
+                        this.$.toastNotify.open();
                     }
-                    this.$.toastNotify.text = "Repo added!";
-                    this.$.toastNotify.open();
-                    this._updateApplicationData();
                 }
                 else{
                     this.$.toastNotify.text = "Repo already exists!";

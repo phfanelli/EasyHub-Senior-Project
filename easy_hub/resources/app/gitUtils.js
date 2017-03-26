@@ -17,7 +17,7 @@ var gitUtils = gitUtils || {};
  */
 gitUtils.clone = function(remote, dest) {
     var baseCmd = 'git clone ' + remote;
-    spawn_async(baseCmd, [], {cwd: dest});
+    return spawn_sync(baseCmd, [], {cwd: dest});
 };
 
 /**
@@ -30,15 +30,15 @@ gitUtils.init = function(dest) {
 };
 
 gitUtils.getLocalBranches = function(dest) {
-    return String(execute_sync('git branch', dest)).split("\n");
+    return String(execute_sync('git branch', {cwd: dest})).split("\n");
 };
 
 gitUtils.getRemoteBranches = function(dest) {
-    return String(execute_sync('git branch -r', dest)).split("\n");
+    return String(execute_sync('git branch -r', {cwd: dest})).split("\n");
 };
 
 gitUtils.getAllBranches = function(dest) {
-    return String(execute_sync('git branch -a', dest)).split("\n");
+    return String(execute_sync('git branch -a', {cwd: dest})).split("\n");
 
 };
 
@@ -98,7 +98,7 @@ gitUtils.diff = function (dest) {
  * @param command - command to be executed
  */
 function execute_async(command, options) {
-    const exec = require('child_process').exec;
+    const exec = child_process.exec;
     exec(command, options, function(error, stdout, stderr){
             if (error) {
                 console.error("exec error"+error);
@@ -116,7 +116,7 @@ function execute_async(command, options) {
  */
 function spawn_async(command, args, options) {
     if(!args){args = []};
-    const spawn = require('child_process').spawn;
+    const spawn = child_process.spawn;
     var proc = spawn("cmd",["/c",command], options);
     proc.stdout.on('data', function(data) {
         console.log("stdout: "+data);
@@ -134,6 +134,9 @@ function spawn_async(command, args, options) {
  * @param command - command to be executed
  */
 function spawn_sync(command, args, options) {
+    if(!args){args = []};
+    var proc = child_process.spawn("cmd",["/c",command], options);
+    return proc.exitCode;
 
 }
 
@@ -143,6 +146,6 @@ function spawn_sync(command, args, options) {
  * @param dir
  * @returns {*}
  */
-function execute_sync(command, args, options) {
-    return child_process.execSync(command, {cwd:dir});
+function execute_sync(command, options) {
+    return child_process.execSync(command,  options);
 }
