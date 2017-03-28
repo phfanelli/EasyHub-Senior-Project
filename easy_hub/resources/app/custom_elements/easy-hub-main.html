@@ -14,6 +14,7 @@
     <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
     <link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
     <link rel="import" href="../bower_components/paper-input/paper-textarea.html">
+    <link rel="import" href="../bower_components/paper-badge/paper-badge.html">
 
 </head>
 
@@ -142,13 +143,16 @@
         <div id="mainContainer">
             <paper-button id="statusButton" style="min-width: 2px;"></paper-button>
             <div id="repoContainer" style="display: flex; align-items: flex-end">
-                <paper-dropdown-menu class="custom" id="repoSelector" label="Repository Selection">
-                    <paper-listbox class="dropdown-content">
-                        <template is="dom-repeat" items="{{applicationData.repoArray}}">
-                            <paper-item>{{item.name}}</paper-item>
-                        </template>
-                    </paper-listbox>
-                </paper-dropdown-menu>
+                <div id="notificationContainer" style="display: flex; align-items: flex-end">
+                    <paper-dropdown-menu class="custom" id="repoSelector" label="Repository Selection">
+                        <paper-listbox class="dropdown-content">
+                            <template is="dom-repeat" items="{{applicationData.repoArray}}">
+                                <paper-item>{{item.name}}</paper-item>
+                            </template>
+                        </paper-listbox>
+                    </paper-dropdown-menu>
+                    <paper-badge label="{{changedFileCount}}"></paper-badge>
+                </div>
                 <paper-icon-button icon="icons:add" on-tap="_toggleClone">Add Repo</paper-icon-button>
                 <paper-dropdown-menu class="custom" id="branchSelector" disabled="{{!repoSelected}}" label="Branch Selection">
                     <paper-listbox class="dropdown-content">
@@ -164,6 +168,7 @@
             <paper-button raised class="commandButton">Pull</paper-button>
             <paper-button raised class="commandButton">Commit</paper-button>
             <paper-button raised class="commandButton">Merge</paper-button>
+            <paper-button raised class="commandButton" on-tap="_handleUpdateStatus">Status</paper-button>
         </div>
         <!--<button type="button" onclick="file('zack','git','data.json')">save </button>-->
         <!--<div id="commandOutput">-->
@@ -233,6 +238,23 @@
                 type: String,
                 value:"",
             },
+            changedFileCount: {
+                type: Number,
+                value: 0
+            }
+        },
+
+        _handleUpdateStatus: function() {
+            // run git status
+            var proc = gitUtils.status(this.currentRepo.destination, this.OS_SHELL);
+            if(proc.process.status == 0) {
+                var result = String(proc.process.output[1]);
+                console.log(String(proc.process.output[1]));
+            } else {
+                console.error(String(proc.process.output[2]));
+            }
+            // update file count badge
+            this.set('changedFileCount', this.changedFileCount+1);
         },
 
         /**
@@ -246,7 +268,7 @@
             // get path of selected repo
             this.currentRepo = this.getRepoByName(label);
             this.currentRepo.branches = [];
-            var branches = []
+            var branches = [];
 
             var remotes = gitUtils.getRemoteBranches(this.currentRepo.destination+this.currentRepo.name);
             for (var i = 0; i < remotes.length; i++){
@@ -367,7 +389,7 @@
                 OSType = "MacOS";
                 this.DATA_PATH.WRITE = "data.json";
                 this.DATA_PATH.READ = "data.json";
-                this.OS_SHELL = "/bin/sh";
+                this.OS_SHELL = "/bin/bash";
                 //possibly set this.OS_SLASH
             }
             else if (window.navigator.appVersion.indexOf("Linux") != -1){

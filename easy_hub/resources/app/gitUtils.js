@@ -21,6 +21,11 @@ gitUtils.clone = function(remote, dest, osShell) {
     return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 };
 
+gitUtils.status = function(dest, osShell) {
+    var baseCmd = 'git status';
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
+};
+
 /**
  * attempts to initialize a git repository
  * @param dest - path to new repository on local filesystem
