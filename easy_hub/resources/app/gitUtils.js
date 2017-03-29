@@ -17,7 +17,6 @@ var gitUtils = gitUtils || {};
  */
 gitUtils.clone = function(remote, dest, osShell) {
     var baseCmd = 'git clone ' + remote;
-
     return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 };
 
@@ -25,66 +24,90 @@ gitUtils.clone = function(remote, dest, osShell) {
  * attempts to initialize a git repository
  * @param dest - path to new repository on local filesystem
  */
-gitUtils.init = function(dest) {
+gitUtils.init = function(remote, dest, osShell) {
     var baseCmd = 'git init';
-    execute_sync(baseCmd, dest);
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 };
 
-gitUtils.getLocalBranches = function(dest) {
-    return String(execute_sync('git branch', {cwd: dest})).split("\n");
+gitUtils.getLocalBranches = function(remote, dest, osShell) {
+    var baseCmd = 'git branch' + remote;
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
+
+//    return String(execute_sync('git branch', {cwd: dest})).split("\n");
 };
 
-gitUtils.getRemoteBranches = function(dest) {
-    return String(execute_sync('git branch -r', {cwd: dest})).split("\n");
+gitUtils.getRemoteBranches = function(remote, dest, osShell) {
+    var baseCmd = 'git branch -r' + remote;
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
+
+    //  return String(execute_sync('git branch -r', {cwd: dest})).split("\n");
 };
 
-gitUtils.getAllBranches = function(dest) {
-    return String(execute_sync('git branch -a', {cwd: dest})).split("\n");
+gitUtils.getAllBranches = function(remote, dest, osShell) {
+    var baseCmd = 'git branch -a' + remote;
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
+
+    //return String(execute_sync('git branch -a', {cwd: dest})).split("\n");
 
 };
 
-gitUtils.commit = function (dest) {
-    console.warn("THIS COMMAND NEEDS TO BE IMPLEMENTED")
+gitUtils.commit = function (remote, dest, osShell) {
+    var baseCmd = 'git commit -a' + remote;
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 };
 
-gitUtils.config = function (dest) {
-    console.warn("THIS COMMAND NEEDS TO BE IMPLEMENTED")
+gitUtils.config = function (remote, dest, osShell) {
+    //git config --global user.name "Sam Smith"
+    //git config --global user.email
+    var baseCmd = 'git config ?' + remote;
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
+
 };
 
-gitUtils.add = function (dest) {
-    console.warn("THIS COMMAND NEEDS TO BE IMPLEMENTED")
+gitUtils.add = function (remote, dest, osShell) {
+    //need filename
+    var baseCmd = 'git add "filename"' + remote;
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
+
 };
 
-gitUtils.push = function (dest) {
-    console.warn("THIS COMMAND NEEDS TO BE IMPLEMENTED")
+gitUtils.push = function (remote, dest, osShell) {
+    //need origin, need master
+    var baseCmd = 'git push origin master' + remote;
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});};
+
+gitUtils.getStatus = function (remote, dest, osShell) {
+    var baseCmd = 'git status' + remote;
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});};
+
+gitUtils.remote = function (remote, dest, osShell) {
+    // need origin and <server>
+    var baseCmd = 'git remote add origin <server>' + remote;
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 };
 
-gitUtils.getStatus = function (dest) {
-    // git status
-    console.warn("THIS COMMAND NEEDS TO BE IMPLEMENTED")
+gitUtils.checkoutNewBranch = function (remote, dest, osShell) {
+    // git checkout -b <branchname> new branch and switcvh to.
+    //git checkout <branchname>
+    //var baseCmd = 'git add "filename"' + remote;
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 };
 
-gitUtils.remote = function (dest) {
-    // git remote add origin <server>
-    console.warn("THIS COMMAND NEEDS TO BE IMPLEMENTED")
+gitUtils.switchBranch = function (remote, dest, osShell) {
+    //var baseCmd = 'git checkout <branchname>' + remote;
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 };
 
-gitUtils.checkoutNewBranch = function (dest) {
-    // git checkout -b <branchname>
-    console.warn("THIS COMMAND NEEDS TO BE IMPLEMENTED")
+gitUtils.pull = function (remote, dest, osShell) {
+    var baseCmd = 'git pull' + remote;
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 };
 
-gitUtils.switchBranch = function (dest) {
-    // git checkout <branchname>
-    console.warn("THIS COMMAND NEEDS TO BE IMPLEMENTED")
-};
-
-gitUtils.pull = function (dest) {
-    console.warn("THIS COMMAND NEEDS TO BE IMPLEMENTED")
-};
-
-gitUtils.diff = function (dest) {
-    console.warn("THIS COMMAND NEEDS TO BE IMPLEMENTED")
+gitUtils.diff = function (remote, dest, osShell) {
+    //git diff --base <filename>
+    //git diff <sourcebranch> <targetbranch>
+    var baseCmd = 'git diff' + remote;
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 };
 
 
