@@ -24,89 +24,74 @@ gitUtils.clone = function(remote, dest, osShell) {
  * attempts to initialize a git repository
  * @param dest - path to new repository on local filesystem
  */
-gitUtils.init = function(remote, dest, osShell) {
+gitUtils.init = function(dest, osShell) {
     var baseCmd = 'git init';
     return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 };
 
-gitUtils.getLocalBranches = function(remote, dest, osShell) {
-    var baseCmd = 'git branch' + remote;
+gitUtils.getLocalBranches = function(dest, osShell) {
+    var baseCmd = 'git branch';
     return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 
 //    return String(execute_sync('git branch', {cwd: dest})).split("\n");
 };
 
-gitUtils.getRemoteBranches = function(remote, dest, osShell) {
-    var baseCmd = 'git branch -r' + remote;
+gitUtils.getRemoteBranches = function(dest, osShell) {
+    var baseCmd = 'git branch -r';
     return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 
     //  return String(execute_sync('git branch -r', {cwd: dest})).split("\n");
 };
 
-gitUtils.getAllBranches = function(remote, dest, osShell) {
-    var baseCmd = 'git branch -a' + remote;
+gitUtils.getAllBranches = function(dest, osShell) {
+    var baseCmd = 'git branch -a';
     return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 
     //return String(execute_sync('git branch -a', {cwd: dest})).split("\n");
 
 };
 
-gitUtils.commit = function (remote, dest, osShell) {
-    var baseCmd = 'git commit -a' + remote;
+gitUtils.commit = function (message, dest, osShell) {
+    var baseCmd = 'git commit -m ' + message;
     return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 };
 
-gitUtils.config = function (remote, dest, osShell) {
+gitUtils.config = function (dest, osShell) {
     //git config --global user.name "Sam Smith"
     //git config --global user.email
-    var baseCmd = 'git config ?' + remote;
-    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
-
+    //var baseCmd = 'git config ?';
+    // return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
+    console.warn("config not implemented")
 };
 
-gitUtils.add = function (remote, dest, osShell) {
+gitUtils.add = function (filename, dest, osShell) {
     //need filename
-    var baseCmd = 'git add "filename"' + remote;
+    var baseCmd = 'git add ' + filename;
     return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
-
 };
 
-gitUtils.push = function (remote, dest, osShell) {
+gitUtils.push = function (branch, dest, osShell) {
     //need origin, need master
-    var baseCmd = 'git push origin master' + remote;
+    var baseCmd = 'git push origin '+ branch;
     return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});};
 
-gitUtils.getStatus = function (remote, dest, osShell) {
-    var baseCmd = 'git status' + remote;
-    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});};
-
-gitUtils.remote = function (remote, dest, osShell) {
-    // need origin and <server>
-    var baseCmd = 'git remote add origin <server>' + remote;
+gitUtils.getStatus = function (dest, osShell) {
+    var baseCmd = 'git status';
     return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 };
 
-gitUtils.checkoutNewBranch = function (remote, dest, osShell) {
-    // git checkout -b <branchname> new branch and switcvh to.
-    //git checkout <branchname>
-    //var baseCmd = 'git add "filename"' + remote;
+gitUtils.checkoutNewBranch = function (branch,dest, osShell) {
+    var baseCmd = 'git checkout -b ' + branch;
     return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 };
 
-gitUtils.switchBranch = function (remote, dest, osShell) {
-    //var baseCmd = 'git checkout <branchname>' + remote;
+gitUtils.switchBranch = function (branch, dest, osShell) {
+    var baseCmd = 'git checkout ' +branch;
     return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 };
 
-gitUtils.pull = function (remote, dest, osShell) {
-    var baseCmd = 'git pull' + remote;
-    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
-};
-
-gitUtils.diff = function (remote, dest, osShell) {
-    //git diff --base <filename>
-    //git diff <sourcebranch> <targetbranch>
-    var baseCmd = 'git diff' + remote;
+gitUtils.pull = function (dest, osShell) {
+    var baseCmd = 'git pull';
     return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 };
 
