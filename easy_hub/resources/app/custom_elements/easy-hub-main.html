@@ -14,6 +14,7 @@
     <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
     <link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
     <link rel="import" href="../bower_components/paper-input/paper-textarea.html">
+    <link rel="import" href="../bower_components/paper-badge/paper-badge.html">
 
 </head>
 
@@ -140,15 +141,17 @@
         </paper-dialog>
 
         <div id="mainContainer">
-            <paper-button id="statusButton" style="min-width: 2px;"></paper-button>
             <div id="repoContainer" style="display: flex; align-items: flex-end">
-                <paper-dropdown-menu class="custom" id="repoSelector" label="Repository Selection">
-                    <paper-listbox class="dropdown-content">
-                        <template is="dom-repeat" items="{{applicationData.repoArray}}">
-                            <paper-item>{{item.name}}</paper-item>
-                        </template>
-                    </paper-listbox>
-                </paper-dropdown-menu>
+                <div id="notificationContainer" style="display: flex; margin-top: 40px">
+                    <paper-dropdown-menu class="custom" id="repoSelector" label="Repository Selection">
+                        <paper-listbox class="dropdown-content">
+                            <template is="dom-repeat" items="{{applicationData.repoArray}}">
+                                <paper-item>{{item.name}}</paper-item>
+                            </template>
+                        </paper-listbox>
+                    </paper-dropdown-menu>
+                    <paper-badge label="{{changedFileCount}}" for="repoSelector"></paper-badge>
+                </div>
                 <paper-icon-button icon="icons:add" on-tap="_toggleClone">Add Repo</paper-icon-button>
                 <paper-dropdown-menu class="custom" id="branchSelector" disabled="{{!repoSelected}}" label="Branch Selection">
                     <paper-listbox class="dropdown-content">
@@ -165,6 +168,7 @@
             <paper-button raised class="commandButton">Commit</paper-button>
             <paper-button raised class="commandButton">Merge</paper-button>
             <paper-button raised class="commandButton" on-tap="_delete" disabled="{{!repoSelected}}">Delete</paper-button>
+            <paper-icon-button on-tap="_handleUpdateStatus" icon="refresh" style="color: white" hidden$="{{!repoSelected}}"></paper-icon-button>
         </div>
         <!--<button type="button" onclick="file('zack','git','data.json')">save </button>-->
         <!--<div id="commandOutput">-->
@@ -234,6 +238,36 @@
                 type: String,
                 value:"",
             },
+            changedFileCount: {
+                type: Number,
+                value: 0
+            }
+        },
+
+        /**
+         * runs 'git status' and parses the result from the terminal to determine how many modifications have been
+         * made. updates a badge above the repo-selector accordingly
+         * @private
+         **/
+        _handleUpdateStatus: function() {
+            // run git status
+            var proc = gitUtils.status(this.currentRepo.destination+this.currentRepo.name, this.OS_SHELL);
+            var numModifications = 0;
+            var numUntracked = 0;
+            if(proc.process.status == 0) {
+                var result = this.get_process_response(proc).split('\n');
+                for(i=0; i<result.length; i++) {
+                    if(result[i].includes('modified:') || result[i].includes('deleted: ')) {
+                        numModifications += 1;
+                    } else if(result[i].includes('Untracked files:')) {
+                        numUntracked = result.length - i - 6;
+                    }
+                }
+            } else {
+                console.error(this.get_process_error(proc));
+            }
+            // update file count badge
+            this.set('changedFileCount', numModifications + numUntracked);
         },
 
         /**
@@ -247,15 +281,22 @@
             // get path of selected repo
             this.currentRepo = this.getRepoByName(label);
             this.currentRepo.branches = [];
-            var branches = []
+            var branches = [];
 
-            var remotes = gitUtils.getRemoteBranches(this.currentRepo.destination+this.currentRepo.name);
-            for (var i = 0; i < remotes.length; i++){
-                if(remotes[i]){
-                    branches.push({name:remotes[i]});
+            var result = gitUtils.getRemoteBranches(this.currentRepo.destination+this.currentRepo.name, this.OS_SHELL);
+            if(result.process.status == 0) {
+                var remotes = this.get_process_response(result).split('\n');
+                for (var i = 0; i < remotes.length; i++) {
+                    if (remotes[i]) {
+                        branches.push({name: remotes[i]});
+                    }
                 }
+                this.set('currentRepo.branches', branches);
+            } else {
+                console.error(this.get_process_error(result));
             }
-            this.set('currentRepo.branches', branches);
+            // fetch status and update notification accordingly
+            this._handleUpdateStatus();
         },
 
 
@@ -286,7 +327,7 @@
         },
 
         _initLocal: function() {
-            gitUtils.init(this.$.cloneDest.value);
+            gitUtils.init(this.$.cloneDest.value, this.OS_SHELL);
         },
 
         _cloneInfoIsValid: function () {
@@ -429,7 +470,17 @@
                 this.applicationData.repoArray = [];
                 this._updateApplicationData();
             }
+        },
 
+        get_process_response: function(proc) {
+            return String(proc.process.output[1]);
+        },
+
+        get_process_error: function(proc) {
+            if(proc.process.output == null) {
+                return String(proc.process.error);
+            }
+            return String(proc.process.output[2]);
         }
     });
 </script>
