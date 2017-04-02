@@ -88,7 +88,7 @@ gitUtils.getStatus = function (dest, osShell) {
     return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 };
 
-gitUtils.checkoutNewBranch = function (branch,dest, osShell) {
+gitUtils.createNewBranch = function (branch,dest, osShell) {
     var baseCmd = 'git checkout -b ' + branch;
     return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 };

@@ -28,8 +28,7 @@
         /* CSS rules for your element */
         #mainContainer {
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column;
         }
 
         .commandButton {
@@ -107,13 +106,14 @@
             text-align: left;
             background-color: black;
             color: snow;
-            position: absolute;
-            height: 90%;
-            width: 25%;
-            right: 12px;
-            bottom: 10px;
+            height: 100%;
+            width: 50%;
             overflow-y: auto;
+        }
 
+        #statusBadge{
+            position: relative;
+            left: 0px !important;
         }
 
     </style>
@@ -140,44 +140,49 @@
             </div>
         </paper-dialog>
 
-        <div id="mainContainer">
-            <div id="repoContainer" style="display: flex; align-items: flex-end">
-                <div id="notificationContainer" style="display: flex; margin-top: 40px">
-                    <paper-dropdown-menu class="custom" id="repoSelector" label="Repository Selection">
-                        <paper-listbox class="dropdown-content">
-                            <template is="dom-repeat" items="{{applicationData.repoArray}}">
-                                <paper-item>{{item.name}}</paper-item>
-                            </template>
-                        </paper-listbox>
-                    </paper-dropdown-menu>
-                    <paper-badge label="{{changedFileCount}}" for="repoSelector"></paper-badge>
+        <div id="mainWrapper" style="display: flex; width: 100%; height: 100%">
+            <div id="mainContainer" style="width: 50%">
+                <paper-toolbar>
+                    <div id="repoContainer" style="display: flex; align-items: flex-end">
+                        <paper-dropdown-menu class="custom" id="repoSelector" label="Repository Selection">
+                            <paper-listbox class="dropdown-content">
+                                <template is="dom-repeat" items="{{applicationData.repoArray}}">
+                                    <paper-item>{{item.name}}</paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                        <paper-icon-button icon="icons:add" on-tap="_toggleClone">Add Repo</paper-icon-button>
+                        <paper-dropdown-menu class="custom" id="branchSelector" disabled="{{!repoSelected}}" label="Branch Selection">
+                            <paper-listbox class="dropdown-content">
+                                <template is="dom-repeat" items="{{currentRepo.branches}}">
+                                    <paper-item>{{item.name}}</paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                        <paper-badge id="statusBadge" label="{{changedFileCount}}" for="repoSelector"></paper-badge>
+                        <paper-icon-button on-tap="_handleUpdateStatus" icon="refresh" style="color: white" hidden$="{{!repoSelected}}"></paper-icon-button>
+                    </div>
+                </paper-toolbar>
+
+                <div id="repoCommands" style="display: flex; justify-content: center">
+                    <paper-button raised class="commandButton">Push</paper-button>
+                    <paper-button raised class="commandButton">Pull</paper-button>
+                    <paper-button raised class="commandButton">Commit</paper-button>
+                    <paper-button raised class="commandButton">Merge</paper-button>
+                    <paper-button raised class="commandButton" on-tap="_delete" disabled="{{!repoSelected}}">Delete</paper-button>
                 </div>
-                <paper-icon-button icon="icons:add" on-tap="_toggleClone">Add Repo</paper-icon-button>
-                <paper-dropdown-menu class="custom" id="branchSelector" disabled="{{!repoSelected}}" label="Branch Selection">
-                    <paper-listbox class="dropdown-content">
-                        <template is="dom-repeat" items="{{currentRepo.branches}}">
-                            <paper-item>{{item.name}}</paper-item>
-                        </template>
-                    </paper-listbox>
-                </paper-dropdown-menu>
             </div>
+            <!--<button type="button" onclick="file('zack','git','data.json')">save </button>-->
+            <!--<div id="commandOutput">-->
+            <!--<textarea rows="20" columns="100" readonly="readonly">Change this text!</textarea>-->
+            <!--</div>-->
+            <!-- </div> -->
+            <!-- TOOLTIPS -->
+            <paper-textarea label="Terminal:" id="terminal" value={{consoleData}} readonly>Terminal:</br></paper-textarea>
         </div>
-        <div id="repoCommands" style="display: flex; justify-content: center">
-            <paper-button raised class="commandButton">Push</paper-button>
-            <paper-button raised class="commandButton">Pull</paper-button>
-            <paper-button raised class="commandButton">Commit</paper-button>
-            <paper-button raised class="commandButton">Merge</paper-button>
-            <paper-button raised class="commandButton" on-tap="_delete" disabled="{{!repoSelected}}">Delete</paper-button>
-            <paper-icon-button on-tap="_handleUpdateStatus" icon="refresh" style="color: white" hidden$="{{!repoSelected}}"></paper-icon-button>
-        </div>
-        <!--<button type="button" onclick="file('zack','git','data.json')">save </button>-->
-        <!--<div id="commandOutput">-->
-        <!--<textarea rows="20" columns="100" readonly="readonly">Change this text!</textarea>-->
-        <!--</div>-->
-        <!-- </div> -->
-        <!-- TOOLTIPS -->
+
+
         <paper-tooltip for="cloneDest" offset="0">{{repoFormDestination}}</paper-tooltip>
-        <paper-textarea label="Terminal:" id="terminal" value={{consoleData}} readonly>Terminal:</br></paper-textarea>
     </template>
 </dom-module>
 <script>
@@ -282,7 +287,6 @@
             this.currentRepo = this.getRepoByName(label);
             this.currentRepo.branches = [];
             var branches = [];
-
             var result = gitUtils.getRemoteBranches(this.currentRepo.destination+this.currentRepo.name, this.OS_SHELL);
             if(result.process.status == 0) {
                 var remotes = this.get_process_response(result).split('\n');
