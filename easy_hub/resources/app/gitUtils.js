@@ -14,6 +14,7 @@ var gitUtils = gitUtils || {};
  * attempts to clone a remote git repository
  * @param remote - address of remote repository
  * @param dest - path to new repository on local filesystem
+ * @returns {{process, command}|*}
  */
 gitUtils.clone = function(remote, dest, osShell) {
     var baseCmd = 'git clone ' + remote;
@@ -21,26 +22,33 @@ gitUtils.clone = function(remote, dest, osShell) {
 };
 
 /**
+ * retrieves the status of the git repository
+ * @param dest
+ * @param osShell
+ * @returns {{process, command}|*}
+ */
+gitUtils.status = function(dest, osShell) {
+    return spawn_sync('git status', [], {cwd: dest, shell: osShell});
+};
+
+/**
  * attempts to initialize a git repository
  * @param dest - path to new repository on local filesystem
  */
 gitUtils.init = function(dest, osShell) {
-    var baseCmd = 'git init';
-    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
+    spawn_sync('git init', [], {cwd: dest, shell: osShell});
 };
 
 gitUtils.getLocalBranches = function(dest, osShell) {
-    var baseCmd = 'git branch';
-    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
-
-//    return String(execute_sync('git branch', {cwd: dest})).split("\n");
+    return spawn_sync('git branch', [], {cwd: dest, shell: osShell});
 };
 
 gitUtils.getRemoteBranches = function(dest, osShell) {
-    var baseCmd = 'git branch -r';
-    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
+    return spawn_sync('git branch -r', [], {cwd: dest, shell: osShell});
+};
 
-    //  return String(execute_sync('git branch -r', {cwd: dest})).split("\n");
+gitUtils.getAllBranches = function(dest, osShell) {
+    return spawn_sync('git branch -a', [], {cwd: dest, shell: osShell});
 };
 
 gitUtils.getAllBranches = function(dest, osShell) {
@@ -101,8 +109,9 @@ gitUtils.pull = function (dest, osShell) {
 
 
 
-/******************************EXECUTION FUNCTIONS***************************?
-/**
+/******************************EXECUTION FUNCTIONS***************************/
+
+ /**
  * asynchronously executes a command in the terminal, logs output to console
  * @param command - command to be executed
  */
@@ -150,14 +159,4 @@ function spawn_sync(command, args, options) {
     var proc = child_process.spawnSync(command, options);
     return {process: proc, command: command};
 
-}
-
-/**
- *
- * @param command
- * @param dir
- * @returns {*}
- */
-function execute_sync(command, options) {
-    return child_process.execSync(command,  options);
 }
