@@ -167,6 +167,7 @@
             <paper-button raised class="commandButton">Pull</paper-button>
             <paper-button raised class="commandButton">Commit</paper-button>
             <paper-button raised class="commandButton">Merge</paper-button>
+            <paper-button raised class="commandButton" on-tap="_delete" disabled="{{!repoSelected}}">Delete</paper-button>
             <paper-icon-button on-tap="_handleUpdateStatus" icon="refresh" style="color: white" hidden$="{{!repoSelected}}"></paper-icon-button>
         </div>
         <!--<button type="button" onclick="file('zack','git','data.json')">save </button>-->
@@ -422,6 +423,30 @@
             //write the OS Type to file
             this.applicationData.OS = OSType;
         },
+        _repoCheck: function () {
+            for (var i = 0; i < this.applicationData.repoArray.length; i++){
+               //This if statement only occurs when a repo has been removed
+               if (!fs.existsSync(this.applicationData.repoArray[i].destination + this.applicationData.repoArray[i].name)){
+                   //now we must remove repoArray[i]
+                   this.splice('applicationData.repoArray',i, 1);
+               }
+            }
+            this._updateApplicationData();
+        },
+        _delete: function () {
+            var actualPath = this.currentRepo.destination;
+            var deleteProc = repoDelete(this.currentRepo.name, actualPath, this.OS_SHELL);
+
+            //deleting current_repo from repository selection
+            for (var i = 0; i < this.applicationData.repoArray.length; i++){
+                //This if statement only occurs when a repo has been removed
+                if ((this.applicationData.repoArray[i].destination == this.currentRepo.destination) && (this.applicationData.repoArray[i].name == this.currentRepo.name)){
+                    //now we must remove repoArray[i]
+                    this.splice('applicationData.repoArray',i, 1);
+                }
+            }
+            this._updateApplicationData();
+        },
 
         writeTerminal: function (input){
             var temp = this.consoleData +"\n"+ input;
@@ -438,13 +463,13 @@
                     if(!this.applicationData.repoArray){
                         this.applicationData.repoArray = [];
                     }
+                    this._repoCheck();
                 }.bind(this));
             }
             else{
                 this.applicationData.repoArray = [];
                 this._updateApplicationData();
             }
-
         },
 
         get_process_response: function(proc) {

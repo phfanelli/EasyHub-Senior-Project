@@ -160,3 +160,15 @@ function spawn_sync(command, args, options) {
     return {process: proc, command: command};
 
 }
+
+function repoDelete(path, dest, osShell) {
+    var baseCmd;
+    if(osShell == "cmd") {
+        var baseCmd = 'rmdir ' + path + ' /s /q';
+    } else {
+        baseCmd = 'rm -r -f ' + path;
+    }
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
+
+}
+
