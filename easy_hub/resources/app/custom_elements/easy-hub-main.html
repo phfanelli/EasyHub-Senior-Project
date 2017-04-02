@@ -385,7 +385,7 @@
         _repoCheck: function () {
             for (var i = 0; i < this.applicationData.repoArray.length; i++){
                //This if statement only occurs when a repo has been removed
-               if (!fs.existsSync(this.applicationData.repoArray[i].destination.replace('/', '\\') + this.applicationData.repoArray[i].name)){
+               if (!fs.existsSync(this.applicationData.repoArray[i].destination + this.applicationData.repoArray[i].name)){
                    //now we must remove repoArray[i]
                    this.splice('applicationData.repoArray',i, 1);
                }
@@ -393,7 +393,7 @@
             this._updateApplicationData();
         },
         _delete: function () {
-            var actualPath = this.currentRepo.destination.replace('/','\\');
+            var actualPath = this.currentRepo.destination;
             var deleteProc = repoDelete(this.currentRepo.name, actualPath, this.OS_SHELL);
 
             //deleting current_repo from repository selection
@@ -404,6 +404,7 @@
                     this.splice('applicationData.repoArray',i, 1);
                 }
             }
+            this._updateApplicationData();
         },
 
         writeTerminal: function (input){
