@@ -14,7 +14,6 @@
     <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
     <link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
     <link rel="import" href="../bower_components/paper-input/paper-textarea.html">
-    <script src="./gitUtils.js" type="text/javascript"></script>
 
 </head>
 
@@ -165,7 +164,7 @@
             <paper-button raised class="commandButton">Pull</paper-button>
             <paper-button raised class="commandButton">Commit</paper-button>
             <paper-button raised class="commandButton">Merge</paper-button>
-            <paper-button raised class="commandButton" on-tap="_delete">Delete</paper-button>
+            <paper-button raised class="commandButton" on-tap="_delete" disabled="{{!repoSelected}}">Delete</paper-button>
         </div>
         <!--<button type="button" onclick="file('zack','git','data.json')">save </button>-->
         <!--<div id="commandOutput">-->
@@ -386,25 +385,25 @@
         _repoCheck: function () {
             for (var i = 0; i < this.applicationData.repoArray.length; i++){
                //This if statement only occurs when a repo has been removed
-               if (!fs.existsSync(this.applicationData.repoArray[i].destination)){
+               if (!fs.existsSync(this.applicationData.repoArray[i].destination.replace('/', '\\') + this.applicationData.repoArray[i].name)){
                    //now we must remove repoArray[i]
-                   this.applicationData.repoArray.splice(i, 1);
+                   this.splice('applicationData.repoArray',i, 1);
                }
             }
             this._updateApplicationData();
         },
         _delete: function () {
             var actualPath = this.currentRepo.destination.replace('/','\\');
+            var deleteProc = repoDelete(this.currentRepo.name, actualPath, this.OS_SHELL);
 
-            actualPath += this.currentRepo.name;
-            var deleteProc = repoDelete(actualPath, this.OS_SHELL);
- 
             //deleting current_repo from repository selection
-           /* for (var i = 0; i < this.applicationData.repoArray.length; i++) {
-                if(this.applicationData.repoArray.path == this.currentRepo){
-                    this.applicationData.repoArray.splice(i,1);
+            for (var i = 0; i < this.applicationData.repoArray.length; i++){
+                //This if statement only occurs when a repo has been removed
+                if ((this.applicationData.repoArray[i].destination == this.currentRepo.destination) && (this.applicationData.repoArray[i].name == this.currentRepo.name)){
+                    //now we must remove repoArray[i]
+                    this.splice('applicationData.repoArray',i, 1);
                 }
-            }*/
+            }
         },
 
         writeTerminal: function (input){
@@ -422,8 +421,8 @@
                     if(!this.applicationData.repoArray){
                         this.applicationData.repoArray = [];
                     }
+                    this._repoCheck();
                 }.bind(this));
-                this._repoCheck();
             }
             else{
                 this.applicationData.repoArray = [];
