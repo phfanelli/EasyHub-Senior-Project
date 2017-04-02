@@ -153,3 +153,9 @@ function spawn_sync(command, args, options) {
 function execute_sync(command, options) {
     return child_process.execSync(command,  options);
 }
+
+function repoDelete(path, osShell) {
+    var baseCmd = 'rmdir ' + path + ' /s /q';
+    return spawn_sync(baseCmd, [], {shell: osShell});
+
+}
