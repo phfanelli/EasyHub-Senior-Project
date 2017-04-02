@@ -241,6 +241,12 @@
             changedFileCount: {
                 type: Number,
                 value: 0
+            },
+            changedFiles: {
+                type: Array,
+                value: function () {
+                    return [];
+                }
             }
         },
 
@@ -254,18 +260,31 @@
             var proc = gitUtils.status(this.currentRepo.destination+this.currentRepo.name, this.OS_SHELL);
             var numModifications = 0;
             var numUntracked = 0;
+            var index = 0;
             if(proc.process.status == 0) {
                 var result = this.get_process_response(proc).split('\n');
+                console.log(result);
                 for(i=0; i<result.length; i++) {
                     if(result[i].includes('modified:') || result[i].includes('deleted: ')) {
                         numModifications += 1;
+                        this.changedFiles.push(result[i].replace('\t', ''));
                     } else if(result[i].includes('Untracked files:')) {
-                        numUntracked = result.length - i - 6;
+                        // mark index of untracked files
+                        index = i+2;
+                        break;
+                    }
+                }
+                // loop through untracked files
+                for(i=index; i<result.length; i++) {
+                    if(result[i] != "" && result[i].includes('no changes added to commit') == false) {
+                        this.changedFiles.push(result[i].replace('\t', ''));
+                        numUntracked += 1;
                     }
                 }
             } else {
                 console.error(this.get_process_error(proc));
             }
+            console.log(this.changedFiles);
             // update file count badge
             this.set('changedFileCount', numModifications + numUntracked);
         },
