@@ -167,7 +167,7 @@
             <paper-button raised class="commandButton">Pull</paper-button>
             <paper-button raised class="commandButton">Commit</paper-button>
             <paper-button raised class="commandButton">Merge</paper-button>
-            <paper-icon-button on-tap="_handleUpdateStatus" icon="refresh" style="color: white"></paper-icon-button>
+            <paper-icon-button on-tap="_handleUpdateStatus" icon="refresh" style="color: white" hidden$="{{!repoSelected}}"></paper-icon-button>
         </div>
         <!--<button type="button" onclick="file('zack','git','data.json')">save </button>-->
         <!--<div id="commandOutput">-->
