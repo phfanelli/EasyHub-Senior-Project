@@ -155,7 +155,12 @@ function execute_sync(command, options) {
 }
 
 function repoDelete(path, dest, osShell) {
-    var baseCmd = 'rmdir ' + path + ' /s /q';
+    var baseCmd;
+    if(osShell == "cmd") {
+        var baseCmd = 'rmdir ' + path + ' /s /q';
+    } else {
+        baseCmd = 'rm -r -f ' + path;
+    }
     return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 
 }
