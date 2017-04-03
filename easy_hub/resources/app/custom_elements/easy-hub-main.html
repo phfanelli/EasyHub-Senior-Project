@@ -119,14 +119,12 @@
     </style>
 
     <template>
-        <!--///////////////////////////////////////////////////////////////////////////////////////////////////><!-->
 
-        <paper-dialog id="dialogue">
+        <paper-dialog id="dialog">
              <paper-icon-button icon="icons:close" dialog-dismiss style="margin-top: 0px; top: 0px; position: absolute; right: 0px;"></paper-icon-button>
              <paper-input id="commandInput" label="{{commandType}}"></paper-input>
              <paper-button raised class="cloneButton" on-tap="_setVal">OKAY</paper-button>
         </paper-dialog>
-        <!--///////////////////////////////////////////////////////////////////////////////////////////////////><!-->
 
         <paper-toast id="toastNotify" text="placeholder"></paper-toast>
         <paper-dialog id="cloneDialog" modal>
@@ -176,10 +174,7 @@
             <paper-button raised class="commandButton" on-tap="_push">Push</paper-button>
 
             <paper-button raised class="commandButton">Pull</paper-button>
-            <!--///////////////////////////////////////////////////////////////////////////////////////////////////><!-->
             <paper-button raised class="commandButton" on-tap="_commit" disabled="{{!repoSelected}}">Commit</paper-button>
-
-            <!--///////////////////////////////////////////////////////////////////////////////////////////////////><!-->
             <paper-button raised class="commandButton">Merge</paper-button>
             <paper-button raised class="commandButton" on-tap="_delete" disabled="{{!repoSelected}}">Delete</paper-button>
             <paper-icon-button on-tap="_handleUpdateStatus" icon="refresh" style="color: white" hidden$="{{!repoSelected}}"></paper-icon-button>
@@ -399,7 +394,6 @@
             var dest = this.$.cloneDest.value + this.OS_SLASH;
             var pushProc = gitUtils.push(branch, dest, this.OS_SHELL);
         },
-    /////////////////////////////////////////////////////////////////////////////////////////////////
         _commit:function(){
             this._handleUpdateStatus();
             if(this.changedFileCount==0){
@@ -409,7 +403,7 @@
             }
             else {
                 this.set('commandType', "Commit Message");
-                this.$.dialogue.toggle();
+                this.$.dialog.toggle();
             }
         },
 
@@ -420,7 +414,7 @@
                     var commitProc = gitUtils.commit(this.$.commandInput.value, this.currentRepo.destination+this.currentRepo.name, this.OS_SHELL);
                     if (commitProc) {
                         if(this.$.commandInput.value) {
-                            this.$.dialogue.toggle();
+                            this.$.dialog.toggle();
                             this.writeTerminal("git -a -m * "+"\""+this.$.commandInput.value+"\"");
                             this._handleUpdateStatus();
                             this.$.commandInput.value="";
@@ -439,7 +433,6 @@
                     console.warn("Default Hit in Switch");
             }
         },
-    ////////////////////////////////////////////////////////////////////////////////////////////////
 
         getRepoByUrl: function (url) {
             return _.find(this.applicationData.repoArray, 'url', url);
