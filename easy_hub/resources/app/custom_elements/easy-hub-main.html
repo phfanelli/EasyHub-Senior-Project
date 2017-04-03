@@ -15,6 +15,7 @@
     <link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
     <link rel="import" href="../bower_components/paper-input/paper-textarea.html">
     <link rel="import" href="../bower_components/paper-badge/paper-badge.html">
+    <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 
 </head>
 
@@ -31,8 +32,9 @@
             flex-direction: column;
         }
 
-        .commandButton {
-            background-color: dimgray;
+        #commandPanel paper-button {
+            background-color: silver;
+            margin-top: 5px;
         }
 
         #statusButton {
@@ -106,14 +108,37 @@
             text-align: left;
             background-color: black;
             color: snow;
-            height: 100%;
-            width: 50%;
+            width: 100%;
             overflow-y: auto;
         }
 
-        #statusBadge{
-            position: relative;
-            left: 0px !important;
+        #statusContainer {
+            display: inline-block;
+            margin-left: 30px;
+            margin-right: 30px;
+        }
+        #statusContainer > paper-badge {
+            --paper-badge-margin-left: 20px;
+            --paper-badge-margin-bottom: 0px;
+            --paper-badge-background: var(--paper-purple-200);
+        }
+
+        .heading{
+            padding: 10px 15px;
+            background-color: #f3f3f3;
+            border: 1px solid #dedede;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            width: 100%;
+            text-align: center;
+        }
+
+        .collapse-content {
+            padding: 15px;
+            border: 1px solid #dedede;
         }
 
     </style>
@@ -141,9 +166,10 @@
         </paper-dialog>
 
         <div id="mainWrapper" style="display: flex; width: 100%; height: 100%">
-            <div id="mainContainer" style="width: 50%">
-                <paper-toolbar>
-                    <div id="repoContainer" style="display: flex; align-items: flex-end">
+            <div id="mainContainer" style="width: 50%;">
+                <paper-toolbar style="background: slategrey;">
+                    <img src="../easy_hub_logo.png" alt="" style="width:40px;height:40px;margin-right: 15px;">
+                    <div id="repoContainer" style="display: flex; align-items: flex-end; padding-bottom: 10px;">
                         <paper-dropdown-menu class="custom" id="repoSelector" label="Repository Selection">
                             <paper-listbox class="dropdown-content">
                                 <template is="dom-repeat" items="{{applicationData.repoArray}}">
@@ -151,7 +177,7 @@
                                 </template>
                             </paper-listbox>
                         </paper-dropdown-menu>
-                        <paper-icon-button icon="icons:add" on-tap="_toggleClone">Add Repo</paper-icon-button>
+                        <paper-icon-button id="repoAdd" icon="icons:add" tooltip="Add a repo" on-tap="_toggleClone">Add Repo</paper-icon-button>
                         <paper-dropdown-menu class="custom" id="branchSelector" disabled="{{!repoSelected}}" label="Branch Selection">
                             <paper-listbox class="dropdown-content">
                                 <template is="dom-repeat" items="{{currentRepo.branches}}">
@@ -159,30 +185,63 @@
                                 </template>
                             </paper-listbox>
                         </paper-dropdown-menu>
-                        <paper-badge id="statusBadge" label="{{changedFileCount}}" for="repoSelector"></paper-badge>
-                        <paper-icon-button on-tap="_handleUpdateStatus" icon="refresh" style="color: white" hidden$="{{!repoSelected}}"></paper-icon-button>
+                        <paper-icon-button id="updateStatusBtn" on-tap="_handleUpdateStatus" icon="refresh" style="color: white" hidden$="{{!repoSelected}}"></paper-icon-button>
+                    </div>
+                    <div id="statusContainer">
+                        <span style="-webkit-user-select: none; font-family: sans-serif; font-size: 10pt; vertical-align: middle; text-align: center; display: table-cell;">File Differences</span>
+                        <paper-badge id="statusBadge" label="{{changedFileCount}}"></paper-badge>
                     </div>
                 </paper-toolbar>
+                <div id="horizDivider" style="width:100%; background: black; height:1px"></div>
 
-                <div id="repoCommands" style="display: flex; justify-content: center">
-                    <paper-button raised class="commandButton">Push</paper-button>
-                    <paper-button raised class="commandButton">Pull</paper-button>
-                    <paper-button raised class="commandButton">Commit</paper-button>
-                    <paper-button raised class="commandButton">Merge</paper-button>
-                    <paper-button raised class="commandButton" on-tap="_delete" disabled="{{!repoSelected}}">Delete</paper-button>
+                <div id="commandPanel" style="background: whitesmoke; height: 100%; width: 30%; overflow-y: auto;">
+                    <button on-click="inCommandsToggle" class="heading">In Commands</button>
+                    <iron-collapse id="inCommands">
+                        <div style="display: flex; justify-content: center; flex-direction: column;">
+                            <paper-button raised>Pull</paper-button>
+                        </div>
+                    </iron-collapse>
+                    <button on-click="outCommandsToggle" class="heading">Out Commands</button>
+                    <iron-collapse id="outCommands">
+                        <div style="display: flex; justify-content: center; flex-direction: column;">
+                            <paper-button raised>Push</paper-button>
+                            <paper-button raised>Push</paper-button>
+                            <paper-button raised>Push</paper-button>
+                            <paper-button raised>Push</paper-button>
+                            <paper-button raised>Push</paper-button>
+                            <paper-button raised>Push</paper-button>
+                            <paper-button raised>Push</paper-button>
+                            <paper-button raised>Push</paper-button>
+                            <paper-button raised>Push</paper-button>
+                            <paper-button raised>Push</paper-button>
+                            <paper-button raised>Push</paper-button>
+                            <paper-button raised>Push</paper-button>
+                            <paper-button raised>Push</paper-button>
+                            <paper-button raised>Push</paper-button>
+                            <paper-button raised>Push</paper-button>
+                            <paper-button raised>Push</paper-button>
+                        </div>
+                    </iron-collapse>
+                    <button on-click="localCommandsToggle" class="heading">Local Commands</button>
+                    <iron-collapse id="localCommands">
+                        <div style="display: flex; justify-content: center; flex-direction: column;">
+                            <paper-button raised>Commit</paper-button>
+                            <paper-button raised on-tap="_delete" disabled="{{!repoSelected}}">Delete</paper-button>
+                        </div>
+                    </iron-collapse>
                 </div>
             </div>
-            <!--<button type="button" onclick="file('zack','git','data.json')">save </button>-->
-            <!--<div id="commandOutput">-->
-            <!--<textarea rows="20" columns="100" readonly="readonly">Change this text!</textarea>-->
-            <!--</div>-->
-            <!-- </div> -->
-            <!-- TOOLTIPS -->
-            <paper-textarea label="Terminal:" id="terminal" value={{consoleData}} readonly>Terminal:</br></paper-textarea>
+            <div id="divider" style="width:2px; background: grey;"></div>
+            <div id="terminalSide" style="width:50%; background: black; font-family: Courier New;">
+                <paper-toolbar style="background: black; display: flex; justify-content: center;">
+                    <div>TERMINAL</div>
+                </paper-toolbar>
+                <textarea id="terminal" style="resize: none; position: fixed; width: 100%; height: 100%; background: black; border-color: grey; pointer-events: none;" readonly ></textarea>
+            </div>
         </div>
-
-
         <paper-tooltip for="cloneDest" offset="0">{{repoFormDestination}}</paper-tooltip>
+        <paper-tooltip for="repoAdd" offset="-10" position="top">Add a repo</paper-tooltip>
+        <paper-tooltip for="updateStatusBtn" offset="-10" position="top">Update status</paper-tooltip>
     </template>
 </dom-module>
 <script>
@@ -224,10 +283,6 @@
                 type: String,
                 value: "/"
             },
-            OS_SHELL: {
-                type: String,
-                value: "cmd"
-            },
             DATA_PATH: {
                 type: Object,
                 value: {
@@ -239,14 +294,20 @@
                 type: Boolean,
                 value: false
             },
-            consoleData: {
-                type: String,
-                value:"",
-            },
             changedFileCount: {
                 type: Number,
                 value: 0
             }
+        },
+
+        inCommandsToggle: function(e) {
+            this.$.inCommands.toggle();
+        },
+        outCommandsToggle: function() {
+            this.$.outCommands.toggle();
+        },
+        localCommandsToggle: function() {
+            this.$.localCommands.toggle();
         },
 
         /**
@@ -256,7 +317,7 @@
          **/
         _handleUpdateStatus: function() {
             // run git status
-            var proc = gitUtils.status(this.currentRepo.destination+this.currentRepo.name, this.OS_SHELL);
+            var proc = gitUtils.status(this.currentRepo.destination+this.currentRepo.name);
             var numModifications = 0;
             var numUntracked = 0;
             if(proc.process.status == 0) {
@@ -287,7 +348,7 @@
             this.currentRepo = this.getRepoByName(label);
             this.currentRepo.branches = [];
             var branches = [];
-            var result = gitUtils.getRemoteBranches(this.currentRepo.destination+this.currentRepo.name, this.OS_SHELL);
+            var result = gitUtils.getRemoteBranches(this.currentRepo.destination+this.currentRepo.name);
             if(result.process.status == 0) {
                 var remotes = this.get_process_response(result).split('\n');
                 for (var i = 0; i < remotes.length; i++) {
@@ -331,7 +392,7 @@
         },
 
         _initLocal: function() {
-            gitUtils.init(this.$.cloneDest.value, this.OS_SHELL);
+            gitUtils.init(this.$.cloneDest.value);
         },
 
         _cloneInfoIsValid: function () {
@@ -348,7 +409,7 @@
                 var dest = this.$.cloneDest.value + this.OS_SLASH;
                 var repo = {url: remote, destination: dest, name: name, type: "git"};
                 if(!this.getRepoByUrl(remote)){
-                    var cloneProc = gitUtils.clone(remote, dest, this.OS_SHELL);
+                    var cloneProc = gitUtils.clone(remote, dest);
                     if(cloneProc.process.status == 0){
                         this.$.cloneDialog.toggle();
                         if(this.applicationData.repoArray.length == 0){
@@ -357,7 +418,7 @@
                         else{
                             this.push('applicationData.repoArray', repo);
                         }
-                        this.writeTerminal(cloneProc.command+"\n"+"Clone Successful");
+                        this.writeTerminal(cloneProc.command+"\nClone Success!");
                         this.$.toastNotify.text = "Repo added!";
                         this.$.toastNotify.open();
                         this._updateApplicationData();
@@ -406,14 +467,14 @@
                 OSType = "Windows";
                 this.DATA_PATH.WRITE = "./resources/app/data.json";
                 this.DATA_PATH.READ = "./data.json";
-                this.OS_SHELL = "cmd.exe";
+                OS_SHELL = "cmd.exe";
                 //possibly set this.OS_SLASH
             }
             else if (window.navigator.appVersion.indexOf("Mac") != -1){
                 OSType = "MacOS";
                 this.DATA_PATH.WRITE = "data.json";
                 this.DATA_PATH.READ = "data.json";
-                this.OS_SHELL = "/bin/sh";
+                OS_SHELL = "/bin/sh";
                 //possibly set this.OS_SLASH
             }
             else if (window.navigator.appVersion.indexOf("Linux") != -1){
@@ -421,7 +482,7 @@
                 //possibly set this.OS_SLASH
                 this.DATA_PATH.WRITE = "data.json";
                 this.DATA_PATH.READ = "data.json";
-                this.OS_SHELL = "/bin/bash";
+                OS_SHELL = "/bin/bash";
             }
 
             //write the OS Type to file
@@ -439,7 +500,7 @@
         },
         _delete: function () {
             var actualPath = this.currentRepo.destination;
-            var deleteProc = repoDelete(this.currentRepo.name, actualPath, this.OS_SHELL);
+            var deleteProc = repoDelete(this.currentRepo.name, actualPath);
 
             //deleting current_repo from repository selection
             for (var i = 0; i < this.applicationData.repoArray.length; i++){
@@ -453,8 +514,18 @@
         },
 
         writeTerminal: function (input){
-            var temp = this.consoleData +"\n"+ input;
-            this.set('consoleData', temp);
+            var temp = "\n> "+ input;
+
+            Sequencr.for(0, temp.length, function (i) {
+                this.$.terminal.value += temp[i];
+            }.bind(this),50,null);
+//
+//            for(var i = 0; i<temp.length;){
+//                setTimeout(function () {
+//                    this.$.terminal.value += temp[i];
+//                    i++;
+//                }.bind(this),100)
+//            }
             this.$.terminal.scrollTop = Number.MAX_SAFE_INTEGER;
         },
 

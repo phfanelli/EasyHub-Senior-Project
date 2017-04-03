@@ -7,6 +7,8 @@ const jsonfile = require('jsonfile');
 const fs = require('fs');
 const _ = require('lodash');  // lodash API, really powerful stuff for js objects. Look at docs or ask Ben for info
 const child_process = require('child_process');
+// GLOBALS
+var OS_SHELL = "";
 
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -15,7 +17,11 @@ let win
 
 function createWindow () {
   // Create the browser window.
-  win = new BrowserWindow({width: 1366, height: 768, frame: true, icon: path.join(__dirname,'easy_hub_logo.png')})
+  win = new BrowserWindow({width: 1366,
+      height: 768,
+      frame: true,
+      title: "EasyHub",
+      icon: null})
   //get rid of file bar
   win.setMenu(null);
   // and load the index.html of the app.
