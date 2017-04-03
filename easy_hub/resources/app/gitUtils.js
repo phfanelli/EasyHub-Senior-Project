@@ -98,7 +98,7 @@ gitUtils.switchBranch = function (branch, dest, osShell) {
 };
 
 gitUtils.pull = function (dest, osShell) {
-    var baseCmd = 'git pull';
+    var baseCmd = 'git pull ';
     return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
 };
 
