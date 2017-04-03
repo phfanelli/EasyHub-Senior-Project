@@ -237,7 +237,7 @@
                     <div>TERMINAL</div>
                     <paper-icon-button icon="icons:settings" ></paper-icon-button>
                 </paper-toolbar>
-                <textarea id="terminal" style="resize: none; position: fixed; width: 100%; height: 100%; background: black; border-color: grey; pointer-events: none;" readonly ></textarea>
+                <textarea id="terminal" style="resize: none; width: 100%; height: 100%; background: black; border-color: grey;" readonly ></textarea>
             </div>
         </div>
         <paper-tooltip for="cloneDest" offset="0">{{repoFormDestination}}</paper-tooltip>
@@ -516,18 +516,13 @@
 
         writeTerminal: function (input){
             var temp = "\n> "+ input;
-
             Sequencr.for(0, temp.length, function (i) {
                 this.$.terminal.value += temp[i];
+                if(i == temp.length-1){
+                    this.$.terminal.scrollTop = Number.MAX_SAFE_INTEGER;
+                }
             }.bind(this),25,null);
-//
-//            for(var i = 0; i<temp.length;){
-//                setTimeout(function () {
-//                    this.$.terminal.value += temp[i];
-//                    i++;
-//                }.bind(this),100)
-//            }
-            this.$.terminal.scrollTop = Number.MAX_SAFE_INTEGER;
+
         },
 
         ready: function (e) {
