@@ -16,60 +16,59 @@ var gitUtils = gitUtils || {};
  * @param dest - path to new repository on local filesystem
  * @returns {{process, command}|*}
  */
-gitUtils.clone = function(remote, dest, osShell) {
+gitUtils.clone = function(remote, dest) {
     var baseCmd = 'git clone ' + remote;
-    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
 };
 
 /**
  * retrieves the status of the git repository
  * @param dest
- * @param osShell
  * @returns {{process, command}|*}
  */
-gitUtils.status = function(dest, osShell) {
-    return spawn_sync('git status', [], {cwd: dest, shell: osShell});
+gitUtils.status = function(dest) {
+    return spawn_sync('git status', [], {cwd: dest, shell: OS_SHELL});
 };
 
 /**
  * attempts to initialize a git repository
  * @param dest - path to new repository on local filesystem
  */
-gitUtils.init = function(dest, osShell) {
-    spawn_sync('git init', [], {cwd: dest, shell: osShell});
+gitUtils.init = function(dest) {
+    spawn_sync('git init', [], {cwd: dest, shell: OS_SHELL});
 };
 
-gitUtils.getLocalBranches = function(dest, osShell) {
-    return spawn_sync('git branch', [], {cwd: dest, shell: osShell});
+gitUtils.getLocalBranches = function(dest) {
+    return spawn_sync('git branch', [], {cwd: dest, shell: OS_SHELL});
 };
 
-gitUtils.getRemoteBranches = function(dest, osShell) {
-    return spawn_sync('git branch -r', [], {cwd: dest, shell: osShell});
+gitUtils.getRemoteBranches = function(dest) {
+    return spawn_sync('git branch -r', [], {cwd: dest, shell: OS_SHELL});
 };
 
-gitUtils.getAllBranches = function(dest, osShell) {
-    return spawn_sync('git branch -a', [], {cwd: dest, shell: osShell});
+gitUtils.getAllBranches = function(dest) {
+    return spawn_sync('git branch -a', [], {cwd: dest, shell: OS_SHELL});
 };
 
-gitUtils.getAllBranches = function(dest, osShell) {
+gitUtils.getAllBranches = function(dest) {
     var baseCmd = 'git branch -a';
-    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
 
     //return String(execute_sync('git branch -a', {cwd: dest})).split("\n");
 
 };
 
-gitUtils.commit = function (message, dest, osShell) {
+gitUtils.commit = function (message, dest) {
     var baseCmd = 'git commit -a -m ' + "\""+ message + "\"";
-    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
 };
 
-gitUtils.add = function (dest, osShell) {
+gitUtils.add = function (dest) {
     var baseCmd = 'git add .';
-    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
 };
 
-gitUtils.config = function (dest, osShell) {
+gitUtils.config = function (dest) {
     //git config --global user.name "Sam Smith"
     //git config --global user.email
     //var baseCmd = 'git config ?';p
@@ -77,29 +76,29 @@ gitUtils.config = function (dest, osShell) {
     console.warn("config not implemented")
 };
 
-gitUtils.push = function (branch, dest, osShell) {
+gitUtils.push = function (branch, dest) {
     //need origin, need master
     var baseCmd = 'git push origin '+ branch;
-    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});};
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});};
 
-gitUtils.getStatus = function (dest, osShell) {
+gitUtils.getStatus = function (dest) {
     var baseCmd = 'git status';
-    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
 };
 
-gitUtils.checkoutNewBranch = function (branch,dest, osShell) {
+gitUtils.createNewBranch = function (branch, dest) {
     var baseCmd = 'git checkout -b ' + branch;
-    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
 };
 
-gitUtils.switchBranch = function (branch, dest, osShell) {
+gitUtils.switchBranch = function (branch, dest) {
     var baseCmd = 'git checkout ' +branch;
-    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
 };
 
-gitUtils.pull = function (dest, osShell) {
+gitUtils.pull = function (dest) {
     var baseCmd = 'git pull ';
-    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
 };
 
 
@@ -160,14 +159,14 @@ function spawn_sync(command, args, options) {
 
 }
 
-function repoDelete(path, dest, osShell) {
+function repoDelete(path, dest) {
     var baseCmd;
-    if(osShell == "cmd.exe") {
+    if(OS_SHELL == "cmd.exe") {
         var baseCmd = 'rmdir ' + path + ' /s /q';
     } else {
         baseCmd = 'rm -r -f ' + path;
     }
-    return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
 
 }
 

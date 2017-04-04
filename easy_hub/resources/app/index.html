@@ -1,47 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html style="height: 100%; width: 100%; margin: 0px; overflow: hidden">
 
 
+<style>
 
-  <style>
 
-
-    html{
-      background-color: #3F3F3F;
+    html {
+        background-color: #3F3F3F;
     }
-  </style>
-  <head>
-      <!-- 1. Load webcomponents-lite.min.js for polyfill support. -->
-     <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js">
-     </script>
-     <!-- 2. Use an HTML Import to bring in some elements. -->
-     <link rel="import" href="bower_components/paper-button/paper-button.html">
-     <link rel="import" href="bower_components/polymer/polymer.html">
-     <link rel="import" href="bower_components/paper-input/paper-input.html">
-     <link rel="import" href="bower_components/paper-toolbar/paper-toolbar.html">
-     <link rel="import" href="bower_components/paper-item/paper-item.html">
-     <link rel="import" href="bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
-     <link rel="import" href="bower_components/paper-listbox/paper-listbox.html">
-     <link rel="import" href="custom_elements/easy-hub-main.html">
-     <meta charset="UTF-8">
-  </head>
-  <body>
-    <script>
-        //imports
-        window.$ = window.jQuery = require('jquery');
-        const remote = require('electron').remote;
-        const dialog = remote.dialog;
-    </script>
-    <script src="main.js"></script>
-    <script src="gitUtils.js"></script>
-    <easy-hub-main></easy-hub-main>
+</style>
+<head>
+    <!-- 1. Load webcomponents-lite.min.js for polyfill support. -->
+    <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+    <script src="plugins/Sequencr.js"></script>
+    <!-- 2. Use an HTML Import to bring in some elements. -->
+    <link rel="import" href="bower_components/paper-button/paper-button.html">
+    <link rel="import" href="bower_components/polymer/polymer.html">
+    <link rel="import" href="bower_components/paper-input/paper-input.html">
+    <link rel="import" href="bower_components/paper-toolbar/paper-toolbar.html">
+    <link rel="import" href="bower_components/paper-item/paper-item.html">
+    <link rel="import" href="bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+    <link rel="import" href="bower_components/paper-listbox/paper-listbox.html">
+    <link rel="import" href="custom_elements/easy-hub-main.html">
+    <meta charset="UTF-8">
+</head>
+<body style="height: 100%; width: 100%; margin: 0px">
+<script>
+    //imports
+    window.$ = window.jQuery = require('jquery');
+</script>
+<script src="main.js"></script>
+<script src="gitUtils.js"></script>
+<easy-hub-main></easy-hub-main>
 
 
+<script>
 
+</script>
 
-    <script>
-
-    </script>
-
-  </body>
+</body>
 </html>
