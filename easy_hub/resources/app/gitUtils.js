@@ -59,22 +59,21 @@ gitUtils.getAllBranches = function(dest) {
 };
 
 gitUtils.commit = function (message, dest) {
-    var baseCmd = 'git commit -m ' + message;
+    var baseCmd = 'git commit -a -m ' + "\""+ message + "\"";
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
+};
+
+gitUtils.add = function (dest) {
+    var baseCmd = 'git add .';
     return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
 };
 
 gitUtils.config = function (dest) {
     //git config --global user.name "Sam Smith"
     //git config --global user.email
-    //var baseCmd = 'git config ?';
+    //var baseCmd = 'git config ?';p
     // return spawn_sync(baseCmd, [], {cwd: dest, shell: osShell});
     console.warn("config not implemented")
-};
-
-gitUtils.add = function (filename, dest) {
-    //need filename
-    var baseCmd = 'git add ' + filename;
-    return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
 };
 
 gitUtils.push = function (branch, dest) {
@@ -98,7 +97,7 @@ gitUtils.switchBranch = function (branch, dest) {
 };
 
 gitUtils.pull = function (dest) {
-    var baseCmd = 'git pull';
+    var baseCmd = 'git pull ';
     return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
 };
 
