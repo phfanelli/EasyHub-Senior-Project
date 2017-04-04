@@ -295,10 +295,12 @@
                     }
                 }
                 // loop through untracked files
-                for(i=index; i<result.length; i++) {
-                    if(result[i] != "" && result[i].includes('no changes added to commit') == false && result[i].includes('nothing added to commit')==false) {
-                        this.changedFiles.push(result[i].replace('\t', ''));
-                        numUntracked += 1;
+                if(index){
+                    for(var i = index; i < result.length; i++){
+                        if(result[i] && result[i].includes('no changes added to commit') && !result[i].includes('nothing added to commit')) {
+                            this.changedFiles.push(result[i].replace('\t', ''));
+                            numUntracked += 1;
+                        }
                     }
                 }
             } else {
