@@ -422,8 +422,8 @@
 
         _commit:function(){
             this._handleUpdateStatus();
-            if(this.commit){
-                this.$.toastNotify.text = "Commit Not Made!!!";
+            if(this.changedFileCount==0){
+                this.$.toastNotify.text = "No Changes Found";
                 this.$.toastNotify.open();
 
             }
