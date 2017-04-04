@@ -69,7 +69,7 @@
         #cloneDest ::content #input{
             text-overflow: ellipsis;
         }
-        paper-dropdown-menu {
+        #mainContainer paper-dropdown-menu {
             display: flex;
             justify-content: space-around;
             --paper-input-container-input: {
@@ -88,10 +88,10 @@
                 color: white;
             };
             --paper-input-container-underline: {
-                color: white;
+                background: white;
             };
             --paper-input-container-underline-focus: {
-                color: white;
+                background: white;
             };
             --paper-input-container-underline-focus: {
                 display: none;
@@ -100,8 +100,8 @@
                 display: none;
             };
         }
-        paper-dropdown-menu ::content #dropdown{
-            top: 53px !important;
+        #mainContainer paper-dropdown-menu ::content #dropdown{
+            top: 42px !important;
         }
 
         #terminal{
@@ -123,6 +123,14 @@
             --paper-badge-background: var(--paper-purple-200);
         }
 
+        .terminalSettings{
+            font-size: 8pt;
+            position: absolute;
+            bottom: 0%;
+            border: white 1px solid;
+            padding: 0px;
+        }
+
         .heading{
             padding: 10px 15px;
             background-color: #f3f3f3;
@@ -141,14 +149,33 @@
             border: 1px solid #dedede;
         }
 
+        #terminal {
+            /*Yes i know they're red. They're supposed to be*/
+            font-size: var(--terminal-font-size);
+            font-family: var(--terminal-font-family);
+        }
+
     </style>
 
     <template>
 
-        <paper-dialog id="dialog">
+        <paper-dialog id="dialog" modal>
              <paper-icon-button icon="icons:close" dialog-dismiss style="margin-top: 0px; top: 0px; position: absolute; right: 0px;"></paper-icon-button>
              <paper-input id="commandInput" label="{{commandType}}"></paper-input>
-             <paper-button raised class="cloneButton" on-tap="_setVal">OKAY</paper-button>
+             <paper-button raised class="cloneButton" on-tap="_setVal" value="12">OKAY</paper-button>
+        </paper-dialog>
+
+        <paper-dialog id="styleDialog" modal>
+            <paper-icon-button icon="icons:close" dialog-dismiss style="margin-top: 0px; top: 0px; position: absolute; right: 0px;"></paper-icon-button>
+            <paper-input id="fontInput" type="number" max="32" min="6" label="Font Size" value="10"></paper-input>
+            <paper-dropdown-menu class="custom" id="fontSelector" label="Font Type">
+                <paper-listbox class="dropdown-content" selected="2">
+                    <paper-item>Arial</paper-item>
+                    <paper-item>Times New Roman</paper-item>
+                    <paper-item>Courier New</paper-item>
+                </paper-listbox>
+            </paper-dropdown-menu>
+            <paper-button raised class="cloneButton" on-tap="_setTerminalStyles">O.K.</paper-button>
         </paper-dialog>
 
         <paper-toast id="toastNotify" text="placeholder"></paper-toast>
@@ -225,10 +252,11 @@
                 </div>
             </div>
             <div id="divider" style="width:2px; background: grey;"></div>
-            <div id="terminalSide" style="width:50%; background: black; font-family: Courier New;">
-                <paper-toolbar style="background: black; display: flex; justify-content: flex-start;">
+            <div id="terminalSide" style="width:50%; background: black;">
+                <paper-toolbar style="background: black; display: flex; justify-content: center;">
                     <div>TERMINAL</div>
-                    <paper-icon-button icon="icons:settings" ></paper-icon-button>
+                    <paper-button class="terminalSettings" id="clearButton" raised on-tap="_clearTerminal" style="left: 0px;">Clear</paper-button>
+                    <paper-button class="terminalSettings" id="styleButton" raised on-tap="_toggleStyleDialog" style="left: 58px;">Styles</paper-button>
                 </paper-toolbar>
                 <textarea id="terminal" style="resize: none; width: 100%; height: 100%; background: black; border-color: grey;" readonly ></textarea>
             </div>
@@ -307,7 +335,7 @@
                 value: function () {
                     return [];
                 }
-            }
+            },
         },
 
         inCommandsToggle: function(e) {
@@ -318,6 +346,21 @@
         },
         localCommandsToggle: function() {
             this.$.localCommands.toggle();
+        },
+
+        _setTerminalStyles: function () {
+            this.customStyle["--terminal-font-size"] = this.$.fontInput.value+"pt";
+            this.customStyle["--terminal-font-family"] = this.$.fontSelector.value;
+            this.updateStyles();
+            this._toggleStyleDialog();
+        },
+
+        _toggleStyleDialog: function () {
+            this.$.styleDialog.toggle();
+        },
+
+        _clearTerminal: function () {
+            this.$.terminal.value = "";
         },
 
         /**
@@ -524,11 +567,14 @@
         getRepoByPath: function (path) {
             return _.find(this.applicationData.repoArray, 'destination', path);
         },
+
         getRepoByName: function (name) {
             return _.find(this.applicationData.repoArray, 'name', name);
         },
 
         _openFolderDialog: function () {
+            var remote = require('electron').remote;
+            var dialog = remote.dialog;
             dialog.showOpenDialog({
                 title:"Select a folder",
                 properties: ["openDirectory"],
@@ -603,6 +649,12 @@
         },
 
         ready: function (e) {
+            // set styles
+            this.customStyle["--terminal-font-size"] = '10pt';
+            this.customStyle["--terminal-font-family"] = 'Courier New';
+            this.updateStyles();
+
+
             this._osCheck();
             // check if we have data.JSON
             if (fs.existsSync(this.DATA_PATH.WRITE)) {
