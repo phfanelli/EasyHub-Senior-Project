@@ -171,8 +171,7 @@
             </div>
         </div>
         <div id="repoCommands" style="display: flex; justify-content: center">
-            <paper-button raised class="commandButton" on-tap="_push">Push</paper-button>
-
+            <paper-button raised class="commandButton" on-tap="_push" disabled="[[!commitCounter]]">Push</paper-button>
             <paper-button raised class="commandButton">Pull</paper-button>
             <paper-button raised class="commandButton" on-tap="_commit" disabled="{{!repoSelected}}">Commit</paper-button>
             <paper-button raised class="commandButton">Merge</paper-button>
@@ -193,7 +192,6 @@
 
     Polymer({
         is: "easy-hub-main",
-
 
         listeners: {
             'cloneDialog.iron-overlay-closed': '_clearCloneInput',
@@ -228,6 +226,11 @@
             commandType:{
               type: String,
                 value : ""
+            },
+
+            commitCounter:{
+                type: Number,
+                value:0
             },
 
             OS_SLASH: {
@@ -278,7 +281,6 @@
             var index = 0;
             if(proc.process.status == 0) {
                 var result = this.get_process_response(proc).split('\n');
-                console.log(result);
                 for(i=0; i<result.length; i++) {
                     if(result[i].includes('modified:') || result[i].includes('deleted: ')) {
                         numModifications += 1;
@@ -287,11 +289,14 @@
                         // mark index of untracked files
                         index = i+2;
                         break;
+                    } else if(result[i].includes('nothing to commit')) {
+                        this.set('changedFileCount', 0);
+                        return;
                     }
                 }
                 // loop through untracked files
                 for(i=index; i<result.length; i++) {
-                    if(result[i] != "" && result[i].includes('no changes added to commit') == false) {
+                    if(result[i] != "" && result[i].includes('no changes added to commit') == false && result[i].includes('nothing added to commit')==false) {
                         this.changedFiles.push(result[i].replace('\t', ''));
                         numUntracked += 1;
                     }
@@ -299,7 +304,6 @@
             } else {
                 console.error(this.get_process_error(proc));
             }
-            console.log(this.changedFiles);
             // update file count badge
             this.set('changedFileCount', numModifications + numUntracked);
         },
@@ -409,14 +413,15 @@
 
         },
 
-        _push: function(){
-            var dest = this.$.cloneDest.value + this.OS_SLASH;
-            var pushProc = gitUtils.push(branch, dest, this.OS_SHELL);
+        _push:function(){
+                this.set('commandType', "Push Message");
+                this._setVal();
         },
+
         _commit:function(){
             this._handleUpdateStatus();
-            if(this.changedFileCount==0){
-                this.$.toastNotify.text = "No Changes Found";
+            if(this.commit){
+                this.$.toastNotify.text = "Commit Not Made!!!";
                 this.$.toastNotify.open();
 
             }
@@ -437,6 +442,7 @@
                             this.writeTerminal("git -a -m * "+"\""+this.$.commandInput.value+"\"");
                             this._handleUpdateStatus();
                             this.$.commandInput.value="";
+                            this.commitCounter++;
                         }else{
                             this.$.toastNotify.text = "No Message in Input Box, Cannot Commit";
                             this.$.toastNotify.open();
@@ -445,7 +451,12 @@
                     }
                     break;
 
-                case("message"):
+                case("Push Message"):
+                    var pushProc = gitUtils.push("hell ya",this.currentRepo.destination+this.currentRepo.name, this.OS_SHELL);
+                    if (pushProc) {
+                            this.writeTerminal("git push origin "+"Things");
+                            this.commitCounter=0;
+                    }
                     break;
 
                 default:
