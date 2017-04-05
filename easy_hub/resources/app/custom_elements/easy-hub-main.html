@@ -228,28 +228,32 @@
                     </div>
                 </paper-toolbar>
                 <div id="horizDivider" style="width:100%; background: black; height:1px"></div>
+                <div style="display: flex; height: 100%; width: 100%;">
+                    <div id="commandPanel" style="background: whitesmoke; height: 100%; width: 30%; overflow-y: auto;">
+                        <button on-click="inCommandsToggle" class="heading">Inbound Commands</button>
+                        <iron-collapse id="inCommands">
+                            <div style="display: flex; justify-content: center; flex-direction: column;">
+                                <paper-button id="tuggy" raised>Pull</paper-button>
+                            </div>
+                        </iron-collapse>
+                        <button on-click="outCommandsToggle" class="heading">Outbound Commands</button>
+                        <iron-collapse id="outCommands">
+                            <div style="display: flex; justify-content: center; flex-direction: column;">
+                                <paper-button id="pushingTheBaby" raised on-tap="_push" disabled="[[!commitCounter]]">Push</paper-button>
+                            </div>
+                        </iron-collapse>
+                        <button on-click="localCommandsToggle" class="heading">Local Commands</button>
+                        <iron-collapse id="localCommands">
+                            <div style="display: flex; justify-content: center; flex-direction: column;">
+                                <paper-button id="commitToTheInstitution" raised on-tap="_commit" disabled="[[!changedFileCount]]">Commit</paper-button>
+                                <paper-button id="deleteRepo" raised on-tap="_delete" disabled="{{!repoSelected}}">Delete</paper-button>
+                            </div>
+                        </iron-collapse>
+                    </div>
+                    <textarea id="commandArea" style="width: 70%; height: 100%; background:darkgrey; color:whitesmoke" readonly> </textarea>
 
-                <div id="commandPanel" style="background: whitesmoke; height: 100%; width: 30%; overflow-y: auto;">
-                    <button on-click="inCommandsToggle" class="heading">Inbound Commands</button>
-                    <iron-collapse id="inCommands">
-                        <div style="display: flex; justify-content: center; flex-direction: column;">
-                            <paper-button raised>Pull</paper-button>
-                        </div>
-                    </iron-collapse>
-                    <button on-click="outCommandsToggle" class="heading">Outbound Commands</button>
-                    <iron-collapse id="outCommands">
-                        <div style="display: flex; justify-content: center; flex-direction: column;">
-                            <paper-button raised on-tap="_push" disabled="[[!commitCounter]]">Push</paper-button>
-                        </div>
-                    </iron-collapse>
-                    <button on-click="localCommandsToggle" class="heading">Local Commands</button>
-                    <iron-collapse id="localCommands">
-                        <div style="display: flex; justify-content: center; flex-direction: column;">
-                            <paper-button raised on-tap="_commit" disabled="[[!changedFileCount]]">Commit</paper-button>
-                            <paper-button raised on-tap="_delete" disabled="{{!repoSelected}}">Delete</paper-button>
-                        </div>
-                    </iron-collapse>
                 </div>
+
             </div>
             <div id="divider" style="width:2px; background: grey;"></div>
             <div id="terminalSide" style="width:50%; background: black;">
@@ -261,6 +265,7 @@
                 <textarea id="terminal" style="resize: none; width: 100%; height: 100%; background: black; border-color: grey;" readonly ></textarea>
             </div>
         </div>
+        <textarea id="terminal" style="resize: none; width: 100%; height: 100%; background: black; border-color: grey;" readonly ></textarea>
         <paper-tooltip for="cloneDest" offset="0">{{repoFormDestination}}</paper-tooltip>
         <paper-tooltip for="repoAdd" offset="-10" position="top">Add a repo</paper-tooltip>
         <paper-tooltip for="updateStatusBtn" offset="-10" position="top">Update status</paper-tooltip>
@@ -527,6 +532,7 @@
             }
         },
 
+
         _setVal:function(){
             switch(this.commandType) {
                 case("Commit Message"):
@@ -622,9 +628,10 @@
             this._updateApplicationData();
         },
         _delete: function () {
+
             var actualPath = this.currentRepo.destination;
             var deleteProc = repoDelete(this.currentRepo.name, actualPath);
-
+            this.writeTerminal("Repo Deleted");
             //deleting current_repo from repository selection
             for (var i = 0; i < this.applicationData.repoArray.length; i++){
                 //This if statement only occurs when a repo has been removed
@@ -653,6 +660,51 @@
             this.customStyle["--terminal-font-size"] = '10pt';
             this.customStyle["--terminal-font-family"] = 'Courier New';
             this.updateStyles();
+
+            $( "#tuggy" ).hover(
+                function(){
+                    this.$.commandArea.value=gitInfo.pullMessage;
+                }.bind(this),
+                function(){
+                    this.$.commandArea.value="";
+                }.bind(this)
+            );
+
+            $( "#pushingTheBaby" ).hover(
+                function(){
+                   this.$.commandArea.value=gitInfo.pushMessage;
+                }.bind(this),
+                function(){
+                    this.$.commandArea.value="";
+                }.bind(this)
+            );
+
+            $( "#commitToTheInstitution" ).hover(
+                function(){
+                    this.$.commandArea.value=gitInfo.commitMessage;
+                }.bind(this),
+                function(){
+                    this.$.commandArea.value="";
+                }.bind(this)
+            );
+
+            $( "#repoAdd" ).hover(
+                function(){
+                    this.$.commandArea.value=gitInfo.cloneMessage;
+                }.bind(this),
+                function(){
+                    this.$.commandArea.value="";
+                }.bind(this)
+            );
+
+            $( "#deleteRepo" ).hover(
+                function(){
+                    this.$.commandArea.value=gitInfo.deleteMessage;
+                }.bind(this),
+                function(){
+                    this.$.commandArea.value="";
+                }.bind(this)
+            );
 
 
             this._osCheck();
