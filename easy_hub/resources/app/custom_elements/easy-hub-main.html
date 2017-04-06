@@ -491,7 +491,7 @@
                         else{
                             this.push('applicationData.repoArray', repo);
                         }
-                        this.writeTerminal(cloneProc.command+"\nClone Success!");
+                        this.writeTerminal(cloneProc.command+"\nClone Successful!");
                         this.$.toastNotify.text = "Repo added!";
                         this.$.toastNotify.open();
                         this._updateApplicationData();
@@ -553,9 +553,9 @@
                     break;
 
                 case("Push Message"):
-                    var pushProc = gitUtils.push("hell ya",this.currentRepo.destination+this.currentRepo.name, this.OS_SHELL);
+                    var pushProc = gitUtils.push(this.currentRepo.branches,this.currentRepo.destination+this.currentRepo.name, this.OS_SHELL);
                     if (pushProc) {
-                            this.writeTerminal("git push origin "+"Things");
+                            this.writeTerminal("git push origin "+this.currentRepo.branches);
                             this.commitCounter=0;
                     }
                     break;
