@@ -200,6 +200,13 @@
             </div>
         </paper-dialog>
 
+        <paper-dialog id="newBranchDialog" modal>
+            <h2>New Local Branch</h2>
+            <paper-input id="newBranchName" label="Branch Name:"></paper-input>
+            <paper-button raised on-tap="_newLocalBranch">Ok</paper-button>
+            <paper-button raised on-tap="_cancelNewBranch">Cancel</paper-button>
+        </paper-dialog>
+
         <div id="mainWrapper" style="display: flex; width: 100%; height: 100%">
             <div id="mainContainer" style="width: 50%;">
                 <paper-toolbar style="background: slategrey;">
@@ -247,7 +254,7 @@
                         <div style="display: flex; justify-content: center; flex-direction: column;">
                             <paper-button raised on-tap="_commit" disabled="[[!changedFileCount]]">Commit</paper-button>
                             <paper-button raised on-tap="_delete" disabled="{{!repoSelected}}">Delete</paper-button>
-                            <paper-button raised on-tap="_newLocalBranch">New Local Branch</paper-button>
+                            <paper-button raised on-tap="_toggleNewBranch" disabled="{{!repoSelected}}">New Local Branch</paper-button>
                         </div>
                     </iron-collapse>
                 </div>
@@ -380,8 +387,27 @@
                 console.log(result);
             } else {
                 var result = this.get_process_error(proc);
-                console.log(result);
+                console.error(result);
             }
+        },
+
+        _newLocalBranch: function() {
+            var newBranchName = this.$.newBranchName.value;
+            var proc = gitUtils.createNewBranch(newBranchName, this.currentRepo.destination+this.currentRepo.name);
+            if(proc.process.status == 0) {
+                var result = this.get_process_response(proc);
+                console.log(result);
+            } else {
+                var result = this.get_process_error(proc);
+                console.error(result);
+            }
+            this.$.newBranchName.value = "";
+            this._toggleNewBranch();
+        },
+
+        _cancelNewBranch: function() {
+            this.$.newBranchName.value = "";
+            this._toggleNewBranch();
         },
 
         /**
@@ -516,6 +542,10 @@
         _clearCloneInput: function () {
             this.$.cloneRemote.value = "";
             this.$.cloneDest.value = "";
+        },
+
+        _toggleNewBranch: function() {
+            this.$.newBranchDialog.toggle();
         },
 
         _toggleClone: function() {
