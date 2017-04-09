@@ -14,3 +14,5 @@ gitInfo.cloneMessage="Brings down a copy of the selected repository and stores i
     " folder.";
 
 gitInfo.deleteMessage="Delete your current repository from \nyour computer and EasyHub";
+
+gitInfo.resetMessage="Resets the local repository to remote status.\n\n\nClean is called inside of this to clean up any local changes not being tracked";

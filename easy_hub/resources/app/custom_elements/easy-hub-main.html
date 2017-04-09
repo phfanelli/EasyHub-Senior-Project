@@ -117,6 +117,7 @@
             margin-left: 30px;
             margin-right: 30px;
         }
+
         #statusContainer > paper-badge {
             --paper-badge-margin-left: 20px;
             --paper-badge-margin-bottom: 0px;
@@ -233,19 +234,20 @@
                         <button on-click="inCommandsToggle" class="heading">Inbound Commands</button>
                         <iron-collapse id="inCommands">
                             <div style="display: flex; justify-content: center; flex-direction: column;">
-                                <paper-button id="tuggy" raised>Pull</paper-button>
+                                <paper-button id="pullCommand" raised on-tap="_pull">Pull</paper-button>
                             </div>
                         </iron-collapse>
                         <button on-click="outCommandsToggle" class="heading">Outbound Commands</button>
                         <iron-collapse id="outCommands">
                             <div style="display: flex; justify-content: center; flex-direction: column;">
-                                <paper-button id="pushingTheBaby" raised on-tap="_push" disabled="[[!commitCounter]]">Push</paper-button>
+                                <paper-button id="pushCommand" raised on-tap="_push" disabled="[[!commitCounter]]">Push</paper-button>
                             </div>
                         </iron-collapse>
                         <button on-click="localCommandsToggle" class="heading">Local Commands</button>
                         <iron-collapse id="localCommands">
                             <div style="display: flex; justify-content: center; flex-direction: column;">
-                                <paper-button id="commitToTheInstitution" raised on-tap="_commit" disabled="[[!changedFileCount]]">Commit</paper-button>
+                                <paper-button id="commitCommand" raised on-tap="_commit" disabled="[[!changedFileCount]]">Commit</paper-button>
+                                <paper-button id="resetRepo" raised on-tap="_reset" disabled="{{!repoSelected}}">Reset</paper-button>
                                 <paper-button id="deleteRepo" raised on-tap="_delete" disabled="{{!repoSelected}}">Delete</paper-button>
                             </div>
                         </iron-collapse>
@@ -372,12 +374,13 @@
          * made. updates a badge above the repo-selector accordingly
          * @private
          **/
-        _handleUpdateStatus: function() {
+        _handleUpdateStatus: function(args) {
             // run git status
             var proc = gitUtils.status(this.currentRepo.destination+this.currentRepo.name);
             var numModifications = 0;
             var numUntracked = 0;
             var index = 0;
+
             if(proc.process.status == 0) {
                 var result = this.get_process_response(proc).split('\n');
                 for(i=0; i<result.length; i++) {
@@ -405,14 +408,18 @@
             } else {
                 console.error(this.get_process_error(proc));
             }
+            if (!args){
+                this.writeTerminal("git status \n"+this.get_process_response(proc),5);
+            }
             // update file count badge
             this.set('changedFileCount', numModifications + numUntracked);
+
         },
 
         /**
          * update the current repo information
          * @private
-         */
+         **/
         _updateCurrentRepoInfo: function() {
             this.set('repoSelected', true);
             // get selected repo
@@ -518,8 +525,13 @@
                 this._setVal();
         },
 
+        _pull:function(){
+        this.set('commandType', "Pull Message");
+        this._setVal();
+        },
+
         _commit:function(){
-            this._handleUpdateStatus();
+            this._handleUpdateStatus(1);
             if(this.changedFileCount==0){
                 this.$.toastNotify.text = "No Changes Found";
                 this.$.toastNotify.open();
@@ -531,6 +543,10 @@
             }
         },
 
+        _reset:function(){
+            this.set('commandType', "Reset Message");
+            this._setVal();
+        },
 
         _setVal:function(){
             switch(this.commandType) {
@@ -541,13 +557,12 @@
                         if(this.$.commandInput.value) {
                             this.$.dialog.toggle();
                             this.writeTerminal("git -a -m * "+"\""+this.$.commandInput.value+"\"");
-                            this._handleUpdateStatus();
+                            this._handleUpdateStatus(1);
                             this.$.commandInput.value="";
                             this.commitCounter++;
                         }else{
                             this.$.toastNotify.text = "No Message in Input Box, Cannot Commit";
                             this.$.toastNotify.open();
-
                         }
                     }
                     break;
@@ -557,6 +572,24 @@
                     if (pushProc) {
                             this.writeTerminal("git push origin "+this.currentRepo.branches);
                             this.commitCounter=0;
+                    }
+                    break;
+
+                case("Pull Message"):
+                    var pullProc = gitUtils.pull(this.currentRepo.destination+this.currentRepo.name);
+                    if (pullProc) {
+                        this.writeTerminal("git pull");
+                        this.commitCounter=0;
+                    }
+                    break;
+
+                case("Reset Message"):
+                    var resetProc = gitUtils.reset(this.currentRepo.destination+this.currentRepo.name);
+                    gitUtils.clean(this.currentRepo.destination+this.currentRepo.name);
+                    if (resetProc) {
+                        this.writeTerminal("git reset --hard \n> git clean -df");
+                        this.commitCounter=0;
+
                     }
                     break;
 
@@ -616,6 +649,7 @@
             //write the OS Type to file
             this.applicationData.OS = OSType;
         },
+
         _repoCheck: function () {
             for (var i = 0; i < this.applicationData.repoArray.length; i++){
                //This if statement only occurs when a repo has been removed
@@ -626,8 +660,8 @@
             }
             this._updateApplicationData();
         },
-        _delete: function () {
 
+        _delete: function () {
             var actualPath = this.currentRepo.destination;
             var deleteProc = repoDelete(this.currentRepo.name, actualPath);
             this.writeTerminal("Repo Deleted");
@@ -643,14 +677,17 @@
             this.set("repoSelected",false);
         },
 
-        writeTerminal: function (input){
+        writeTerminal: function (input,speed){
+            if (!speed){
+                speed=25;
+            }
             var temp = "\n> "+ input;
             Sequencr.for(0, temp.length, function (i) {
                 this.$.terminal.value += temp[i];
                 if(i == temp.length-1){
                     this.$.terminal.scrollTop = Number.MAX_SAFE_INTEGER;
                 }
-            }.bind(this),25,null);
+            }.bind(this),speed,null);
 
         },
 
@@ -660,7 +697,7 @@
             this.customStyle["--terminal-font-family"] = 'Courier New';
             this.updateStyles();
 
-            $( "#tuggy" ).hover(
+            $( "#pullCommand" ).hover(
                 function(){
                     this.$.commandArea.value=gitInfo.pullMessage;
                 }.bind(this),
@@ -669,7 +706,7 @@
                 }.bind(this)
             );
 
-            $( "#pushingTheBaby" ).hover(
+            $( "#pushCommand" ).hover(
                 function(){
                    this.$.commandArea.value=gitInfo.pushMessage;
                 }.bind(this),
@@ -678,7 +715,7 @@
                 }.bind(this)
             );
 
-            $( "#commitToTheInstitution" ).hover(
+            $( "#commitCommand" ).hover(
                 function(){
                     this.$.commandArea.value=gitInfo.commitMessage;
                 }.bind(this),
@@ -699,6 +736,15 @@
             $( "#deleteRepo" ).hover(
                 function(){
                     this.$.commandArea.value=gitInfo.deleteMessage;
+                }.bind(this),
+                function(){
+                    this.$.commandArea.value="";
+                }.bind(this)
+            );
+
+            $( "#resetRepo" ).hover(
+                function(){
+                    this.$.commandArea.value=gitInfo.resetMessage;
                 }.bind(this),
                 function(){
                     this.$.commandArea.value="";
