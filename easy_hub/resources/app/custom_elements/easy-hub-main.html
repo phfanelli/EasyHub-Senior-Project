@@ -222,13 +222,13 @@
                         </paper-dropdown-menu>
                         <paper-icon-button id="repoAdd" icon="icons:add" tooltip="Add a repo" on-tap="_toggleClone">Add Repo</paper-icon-button>
                         <paper-dropdown-menu class="custom" id="branchSelector" disabled="{{!repoSelected}}" label="Branch Selection">
-                            <paper-listbox class="dropdown-content">
+                            <paper-listbox id="branchListbox" class="dropdown-content">
                                 <template is="dom-repeat" items="{{currentRepo.canonicalBranchList}}">
                                     <paper-item>{{item.name}}</paper-item>
                                 </template>
                             </paper-listbox>
                         </paper-dropdown-menu>
-                        <paper-icon-button id="updateStatusBtn" on-tap="_handleUpdateStatus" icon="refresh" style="color: white" hidden$="{{!repoSelected}}"></paper-icon-button>
+                        <paper-icon-button id="updateStatusBtn" on-tap="_updateCurrentRepoInfo" icon="refresh" style="color: white" hidden$="{{!repoSelected}}"></paper-icon-button>
                     </div>
                     <div id="statusContainer">
                         <span style="-webkit-user-select: none; font-family: sans-serif; font-size: 10pt; vertical-align: middle; text-align: center; display: table-cell;">File Differences</span>
@@ -376,7 +376,10 @@
          * 2) create new local branch to track selected remote branch
          * @private
          */
-        _handleBranchSelected: function () {
+        _handleBranchSelected: function (e) {
+            if(e) {
+                return;
+            }
             this.set('currentRepo.currentBranch', "");
             // get selected branch
             var label = this.$.branchSelector.selectedItemLabel;
@@ -414,8 +417,13 @@
             }
             var proc = gitUtils.createNewBranch(newBranchName, this.currentRepo.destination+this.currentRepo.name);
             if(proc.process.status == 0) {
-                var result = this.get_process_response(proc);
-                console.log(result);
+                // update branches to reflect new branch
+                this._updateRepoBranches();
+                this.set('currentRepo.currentBranch', newBranchName);
+                // set the branch selector to the new branch
+                var items = _.map(this.currentRepo.canonicalBranchList, 'name');
+                var branchIndex = items.indexOf(newBranchName);
+                this.$.branchListbox.selected = branchIndex;
             } else {
                 var result = this.get_process_error(proc);
                 console.error(result);
@@ -434,7 +442,7 @@
          * made. updates a badge above the repo-selector accordingly
          * @private
          **/
-        _handleUpdateStatus: function(isCommit) {
+        _updateChangeStatus: function(isCommit) {
             // run git status
             var proc = gitUtils.status(this.currentRepo.destination+this.currentRepo.name);
             var numModifications = 0;
@@ -473,7 +481,6 @@
             }
             // update file count badge
             this.set('changedFileCount', numModifications + numUntracked);
-            this._setCanonicalBranchList();
         },
 
         /**
@@ -486,6 +493,17 @@
             var label = this.$.repoSelector.selectedItemLabel;
             // get path of selected repo
             this.currentRepo = this.getRepoByName(label);
+            // update branches of repository
+            this._updateRepoBranches();
+            // fetch status and update notification accordingly
+            this._updateChangeStatus();
+        },
+
+        /**
+         * Populates the remote and local branches, as well as canonical branch list
+         * @private
+         */
+        _updateRepoBranches: function() {
             this.currentRepo.remoteBranches = [];
             this.currentRepo.localBranches = [];
             var branches = [];
@@ -515,8 +533,6 @@
                 }
             }
             this._setCanonicalBranchList();
-            // fetch status and update notification accordingly
-            this._handleUpdateStatus();
         },
 
         /**
@@ -635,7 +651,7 @@
         },
 
         _commit:function(){
-            this._handleUpdateStatus(1);
+            this._updateChangeStatus(1);
             if(this.changedFileCount==0){
                 this.$.toastNotify.text = "No Changes Found";
                 this.$.toastNotify.open();
@@ -661,7 +677,7 @@
                         if(this.$.commandInput.value) {
                             this.$.dialog.toggle();
                             this.writeTerminal("git -a -m * "+"\""+this.$.commandInput.value+"\"");
-                            this._handleUpdateStatus(1);
+                            this._updateChangeStatus(1);
                             this.$.commandInput.value="";
                             this.commitCounter++;
                         }else{
