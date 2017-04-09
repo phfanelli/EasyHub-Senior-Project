@@ -103,12 +103,19 @@ gitUtils.switchBranch = function (branch, dest) {
 };
 
 gitUtils.pull = function (dest) {
-    var baseCmd = 'git pull ';
+    var baseCmd = 'git pull';
     return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
 };
 
+gitUtils.reset = function (dest) {
+    var baseCmd = 'git reset --hard';
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
+};
 
-
+gitUtils.clean = function (dest) {
+    var baseCmd = 'git clean -df';
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
+};
 
 
 
