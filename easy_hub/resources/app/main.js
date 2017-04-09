@@ -9,6 +9,7 @@ const _ = require('lodash');  // lodash API, really powerful stuff for js object
 const child_process = require('child_process');
 // GLOBALS
 var OS_SHELL = "";
+var OS_SLASH = "";
 
 
 // Keep a global reference of the window object, if you don't, the window will

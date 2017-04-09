@@ -63,6 +63,12 @@ gitUtils.commit = function (message, dest) {
     return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
 };
 
+gitUtils.diff = function(dest){
+    if(OS_SHELL == 'cmd.exe') var baseCmd = 'git diff --cached';
+    else var baseCmd = 'git diff';
+    return spawn_sync(baseCmd, [], {cwd:dest, shell: OS_SHELL});
+};
+
 gitUtils.add = function (dest) {
     var baseCmd = 'git add .';
     return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
@@ -155,6 +161,7 @@ function spawn_sync(command, args, options) {
     }
     if(!args){args = []};
     var proc = child_process.spawnSync(command, options);
+
     return {process: proc, command: command};
 
 }
