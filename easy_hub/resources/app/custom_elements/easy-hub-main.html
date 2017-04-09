@@ -342,7 +342,7 @@
                 value: function () {
                     return [];
                 }
-            },
+            }
         },
 
         inCommandsToggle: function(e) {
@@ -377,12 +377,15 @@
          * @private
          */
         _handleBranchSelected: function () {
+            this.set('currentRepo.currentBranch', "");
             // get selected branch
             var label = this.$.branchSelector.selectedItemLabel;
+            var finalName = label;
             var proc;
             if(label.includes('origin/')) {
                 // branch is remote, create a local branch to track it
-                proc = gitUtils.trackRemoteBranch(label.substring(label.lastIndexOf("/")+1), label, this.currentRepo.destination+this.currentRepo.name);
+                finalName = label.substring(label.lastIndexOf("/")+1);
+                proc = gitUtils.trackRemoteBranch(finalName, label, this.currentRepo.destination+this.currentRepo.name);
             } else {
                 // branch is local, simply switch to it
                 proc = gitUtils.switchBranch(label, this.currentRepo.destination+this.currentRepo.name);
@@ -390,9 +393,11 @@
             if(proc.process.status == 0) {
                 var result = this.get_process_response(proc);
                 console.log(result);
+                this.set('currentRepo.currentBranch', finalName);
             } else {
                 var result = this.get_process_error(proc);
                 console.error(result);
+                this.set('currentRepo.currentBranch', "");
             }
         },
 
