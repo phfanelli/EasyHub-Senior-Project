@@ -96,6 +96,11 @@ gitUtils.switchBranch = function (branch, dest) {
     return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
 };
 
+gitUtils.trackRemoteBranch = function (localName, remoteName, dest) {
+    var baseCmd = 'git checkout -b ' + localName + ' --track ' + remoteName;
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
+};
+
 gitUtils.pull = function (dest) {
     var baseCmd = 'git pull ';
     return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});

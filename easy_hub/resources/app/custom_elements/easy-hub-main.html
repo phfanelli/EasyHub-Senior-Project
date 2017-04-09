@@ -215,7 +215,7 @@
                         <paper-icon-button id="repoAdd" icon="icons:add" tooltip="Add a repo" on-tap="_toggleClone">Add Repo</paper-icon-button>
                         <paper-dropdown-menu class="custom" id="branchSelector" disabled="{{!repoSelected}}" label="Branch Selection">
                             <paper-listbox class="dropdown-content">
-                                <template is="dom-repeat" items="{{currentRepo.branches}}">
+                                <template is="dom-repeat" items="{{currentRepo.canonicalBranchList}}">
                                     <paper-item>{{item.name}}</paper-item>
                                 </template>
                             </paper-listbox>
@@ -247,6 +247,7 @@
                         <div style="display: flex; justify-content: center; flex-direction: column;">
                             <paper-button raised on-tap="_commit" disabled="[[!changedFileCount]]">Commit</paper-button>
                             <paper-button raised on-tap="_delete" disabled="{{!repoSelected}}">Delete</paper-button>
+                            <paper-button raised on-tap="_newLocalBranch">New Local Branch</paper-button>
                         </div>
                     </iron-collapse>
                 </div>
@@ -274,6 +275,7 @@
         listeners: {
             'cloneDialog.iron-overlay-closed': '_clearCloneInput',
             'repoSelector.iron-select': '_updateCurrentRepoInfo',
+            'branchSelector.iron-select': '_handleBranchSelected'
         },
 
         properties: {
@@ -293,13 +295,6 @@
             currentRepo:{
                 type: Object,
                 value: {}
-            },
-            // list of remote branches for current repo
-            remoteBranches: {
-                type: Array,
-                value: function () {
-                    return [];
-                }
             },
             commandType:{
               type: String,
@@ -364,6 +359,32 @@
         },
 
         /**
+         * performs one of two actions when selecting a branch:
+         * 1) switch to existing local branch
+         * 2) create new local branch to track selected remote branch
+         * @private
+         */
+        _handleBranchSelected: function () {
+            // get selected branch
+            var label = this.$.branchSelector.selectedItemLabel;
+            var proc;
+            if(label.includes('origin/')) {
+                // branch is remote, create a local branch to track it
+                proc = gitUtils.trackRemoteBranch(label.substring(label.lastIndexOf("/")+1), label, this.currentRepo.destination+this.currentRepo.name);
+            } else {
+                // branch is local, simply switch to it
+                proc = gitUtils.switchBranch(label, this.currentRepo.destination+this.currentRepo.name);
+            }
+            if(proc.process.status == 0) {
+                var result = this.get_process_response(proc);
+                console.log(result);
+            } else {
+                var result = this.get_process_error(proc);
+                console.log(result);
+            }
+        },
+
+        /**
          * runs 'git status' and parses the result from the terminal to determine how many modifications have been
          * made. updates a badge above the repo-selector accordingly
          * @private
@@ -403,6 +424,7 @@
             }
             // update file count badge
             this.set('changedFileCount', numModifications + numUntracked);
+            this._setCanonicalBranchList();
         },
 
         /**
@@ -415,22 +437,62 @@
             var label = this.$.repoSelector.selectedItemLabel;
             // get path of selected repo
             this.currentRepo = this.getRepoByName(label);
-            this.currentRepo.branches = [];
+            this.currentRepo.remoteBranches = [];
+            this.currentRepo.localBranches = [];
             var branches = [];
-            var result = gitUtils.getRemoteBranches(this.currentRepo.destination+this.currentRepo.name);
-            if(result.process.status == 0) {
-                var remotes = this.get_process_response(result).split('\n');
-                for (var i = 0; i < remotes.length; i++) {
-                    if (remotes[i]) {
-                        branches.push({name: remotes[i]});
+            var result = [];
+            result.push(gitUtils.getRemoteBranches(this.currentRepo.destination+this.currentRepo.name));
+            result.push(gitUtils.getLocalBranches(this.currentRepo.destination+this.currentRepo.name));
+            for(var i=0; i<2; i++) {
+                if (result[i].process.status == 0) {
+                    var found = this.get_process_response(result[i]).split('\n');
+                    for (var j = 0; j < found.length; j++) {
+                        // if string is not empty and does not include head pointer
+                        if (found[j] && !found[j].includes("/HEAD ->")) {
+                            if(found[j].startsWith("* ")) {
+                                found[j] = found[j].substring(2);
+                            }
+                            branches.push({name: found[j].trim()});
+                        }
                     }
+                    if(i==0) {
+                        this.set('currentRepo.remoteBranches', branches);
+                    } else {
+                        this.set('currentRepo.localBranches', branches);
+                    }
+                    branches = [];
+                } else {
+                    console.error(this.get_process_error(result));
                 }
-                this.set('currentRepo.branches', branches);
-            } else {
-                console.error(this.get_process_error(result));
             }
+            this._setCanonicalBranchList();
             // fetch status and update notification accordingly
             this._handleUpdateStatus();
+        },
+
+        /**
+         * Takes the remote and local branch lists for the current repo, and combines pairs into a single listing for
+         * output to the user
+         * @private
+         */
+        _setCanonicalBranchList: function() {
+            var remotes = _.map(this.currentRepo.remoteBranches, 'name');
+            var locals = _.map(this.currentRepo.localBranches, 'name');
+            this.set('currentRepo.canonicalBranchList', []);
+            var canonical = [];
+            var remoteName = "origin";
+            // add all local branches to canonical list
+            for(var i=0; i<locals.length; i++) {
+                canonical.push({name: locals[i]});
+            }
+            // only display remote branch if local with same name does not exist
+            for(var i=0; i<remotes.length; i++) {
+                var name = remotes[i].substring(remotes[i].lastIndexOf("/")+1);
+                if(!_.includes(locals, name)) {
+                    canonical.push({name: remotes[i]});
+                }
+            }
+            this.set('currentRepo.canonicalBranchList', canonical);
         },
 
 
