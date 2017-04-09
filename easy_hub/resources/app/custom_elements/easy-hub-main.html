@@ -178,7 +178,7 @@
             </paper-dropdown-menu>
             <paper-button raised class="cloneButton" on-tap="_setTerminalStyles">O.K.</paper-button>
         </paper-dialog>
-
+        <paper-toast id="cloneToast" text="Cloning..."></paper-toast>
         <paper-toast id="toastNotify" text="placeholder"></paper-toast>
         <paper-dialog id="cloneDialog" modal>
             <paper-icon-button icon="icons:close" dialog-dismiss style="margin-top: 0px; top: 0px; position: absolute; right: 0px;"></paper-icon-button>
@@ -192,7 +192,7 @@
                         <paper-input id="cloneDest" readonly label="Destination Directory" value="{{repoFormDestination}}"></paper-input>
                         <paper-icon-button icon="icons:folder" on-tap="_openFolderDialog">Add Repo</paper-icon-button>
                     </div>
-                    <paper-button raised class="cloneButton" on-tap="_clone" style="margin-top: 15px;">add</paper-button>
+                    <paper-button raised class="cloneButton" on-tap="_cloneCall" style="margin-top: 15px;">add</paper-button>
                 </div>
                 <div id="verticalLine"></div>
                 <div id="createLocal">
@@ -482,7 +482,16 @@
             }
         },
 
+        _cloneCall: function () {
+            this.$.cloneToast.open();
+            this.async(function () {
+                this._clone();
+                this.$.cloneToast.close();
+            }.bind(this),100);
+        },
+
         _clone: function() {
+
             if(this._cloneInfoIsValid()){
                 var remote = this.$.cloneRemote.value;
                 var name = remote.split("/").pop().split(".")[0];
@@ -697,6 +706,7 @@
             this.customStyle["--terminal-font-family"] = 'Courier New';
             this.updateStyles();
 
+            this.$.cloneToast.duration = Infinity;
             $( "#pullCommand" ).hover(
                 function(){
                     this.$.commandArea.value=gitInfo.pullMessage;
