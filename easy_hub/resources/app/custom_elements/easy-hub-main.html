@@ -310,11 +310,6 @@
                 type: Number,
                 value:0
             },
-
-            OS_SLASH: {
-                type: String,
-                value: ""
-            },
             DATA_PATH: {
                 type: Object,
                 value: {
@@ -537,8 +532,8 @@
         _setVal:function(){
             switch(this.commandType) {
                 case("Commit Message"):
-                    gitUtils.add(this.currentRepo.destination+this.currentRepo.name, this.OS_SHELL);
-                    var commitProc = gitUtils.commit(this.$.commandInput.value, this.currentRepo.destination+this.currentRepo.name, this.OS_SHELL);
+                    gitUtils.add(this.currentRepo.destination+this.currentRepo.name, OS_SHELL);
+                    var commitProc = gitUtils.commit(this.$.commandInput.value, this.currentRepo.destination+this.currentRepo.name, OS_SHELL);
                     if (commitProc) {
                         if(this.$.commandInput.value) {
                             this.$.dialog.toggle();
@@ -555,7 +550,7 @@
                     break;
 
                 case("Push Message"):
-                    var pushProc = gitUtils.push("hell ya",this.currentRepo.destination+this.currentRepo.name, this.OS_SHELL);
+                    var pushProc = gitUtils.push("hell ya",this.currentRepo.destination+this.currentRepo.name, OS_SHELL);
                     if (pushProc) {
                             this.writeTerminal("git push origin "+"Things");
                             this.commitCounter=0;
@@ -598,7 +593,6 @@
                 this.DATA_PATH.WRITE = "./resources/app/data.json";
                 this.DATA_PATH.READ = "./data.json";
                 OS_SHELL = "cmd.exe";
-                //possibly set this.OS_SLASH
                 OS_SLASH = "\\";
             }
             else if (window.navigator.appVersion.indexOf("Mac") != -1){
@@ -606,13 +600,11 @@
                 this.DATA_PATH.WRITE = "data.json";
                 this.DATA_PATH.READ = "data.json";
                 OS_SHELL = "/bin/sh";
-                //possibly set this.OS_SLASH
                 OS_SLASH = "/";
 
             }
             else if (window.navigator.appVersion.indexOf("Linux") != -1){
                 OSType = "Linux";
-                //possibly set this.OS_SLASH
                 this.DATA_PATH.WRITE = "data.json";
                 this.DATA_PATH.READ = "data.json";
                 OS_SHELL = "/bin/bash";
