@@ -374,7 +374,7 @@
          * made. updates a badge above the repo-selector accordingly
          * @private
          **/
-        _handleUpdateStatus: function(args) {
+        _handleUpdateStatus: function(isCommit) {
             // run git status
             var proc = gitUtils.status(this.currentRepo.destination+this.currentRepo.name);
             var numModifications = 0;
@@ -408,7 +408,7 @@
             } else {
                 console.error(this.get_process_error(proc));
             }
-            if (!args){
+            if (!isCommit){
                 this.writeTerminal("git status \n"+this.get_process_response(proc),5);
             }
             // update file count badge
@@ -526,8 +526,8 @@
         },
 
         _pull:function(){
-        this.set('commandType', "Pull Message");
-        this._setVal();
+            this.set('commandType', "Pull Message");
+            this._setVal();
         },
 
         _commit:function(){
