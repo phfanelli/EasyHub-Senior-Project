@@ -241,7 +241,7 @@
                         <button on-click="inCommandsToggle" class="heading">Inbound Commands</button>
                         <iron-collapse id="inCommands">
                             <div style="display: flex; justify-content: center; flex-direction: column;">
-                                <paper-button id="pullCommand" raised on-tap="_pull">Pull</paper-button>
+                                <paper-button id="pullCommand" raised on-tap="_pull" disabled="{{!repoSelected}}">Pull</paper-button>
                             </div>
                         </iron-collapse>
                         <button on-click="outCommandsToggle" class="heading">Outbound Commands</button>
@@ -421,15 +421,21 @@
                 this._updateRepoBranches();
                 this.set('currentRepo.currentBranch', newBranchName);
                 // set the branch selector to the new branch
-                var items = _.map(this.currentRepo.canonicalBranchList, 'name');
-                var branchIndex = items.indexOf(newBranchName);
-                this.$.branchListbox.selected = branchIndex;
+                this.async(function () {
+                    this._selectBranch(newBranchName);
+                }.bind(this), 100);
             } else {
                 var result = this.get_process_error(proc);
                 console.error(result);
             }
             this.$.newBranchName.value = "";
             this._toggleNewBranch();
+        },
+
+        _selectBranch: function (branchName) {
+            var items = _.map(this.currentRepo.canonicalBranchList, 'name');
+            var branchIndex = items.indexOf(branchName);
+            this.$.branchListbox.selected = branchIndex;
         },
 
         _cancelNewBranch: function() {
@@ -488,6 +494,7 @@
          * @private
          **/
         _updateCurrentRepoInfo: function() {
+
             this.set('repoSelected', true);
             // get selected repo
             var label = this.$.repoSelector.selectedItemLabel;
@@ -497,6 +504,9 @@
             this._updateRepoBranches();
             // fetch status and update notification accordingly
             this._updateChangeStatus();
+            var currentBranch = this._getCurrentBranch();
+            this.set('currentRepo.currentBranch', currentBranch);
+            this._selectBranch(currentBranch);
         },
 
         /**
@@ -795,6 +805,11 @@
             }
             this._updateApplicationData();
             this.set("repoSelected",false);
+        },
+
+        _getCurrentBranch: function () {
+            var branchProc = gitUtils.getCurrentBranch(this.currentRepo.destination+this.currentRepo.name);
+            return this.get_process_response(branchProc).trim();
         },
 
         writeTerminal: function (input,speed){

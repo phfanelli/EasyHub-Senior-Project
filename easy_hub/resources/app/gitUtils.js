@@ -86,6 +86,11 @@ gitUtils.getStatus = function (dest) {
     return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
 };
 
+gitUtils.getCurrentBranch = function (dest) {
+    var baseCmd = 'git symbolic-ref --short HEAD';
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
+},
+
 gitUtils.createNewBranch = function (branch, dest) {
     var baseCmd = 'git checkout -b ' + branch;
     return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
