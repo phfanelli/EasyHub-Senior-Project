@@ -377,9 +377,6 @@
          * @private
          */
         _handleBranchSelected: function (e) {
-            if(e) {
-                return;
-            }
             this.set('currentRepo.currentBranch', "");
             // get selected branch
             var label = this.$.branchSelector.selectedItemLabel;
