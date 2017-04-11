@@ -86,6 +86,11 @@ gitUtils.getStatus = function (dest) {
     return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
 };
 
+gitUtils.getCurrentBranch = function (dest) {
+    var baseCmd = 'git symbolic-ref --short HEAD';
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
+},
+
 gitUtils.createNewBranch = function (branch, dest) {
     var baseCmd = 'git checkout -b ' + branch;
     return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
@@ -93,6 +98,11 @@ gitUtils.createNewBranch = function (branch, dest) {
 
 gitUtils.switchBranch = function (branch, dest) {
     var baseCmd = 'git checkout ' +branch;
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
+};
+
+gitUtils.trackRemoteBranch = function (localName, remoteName, dest) {
+    var baseCmd = 'git checkout -b ' + localName + ' --track ' + remoteName;
     return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
 };
 
