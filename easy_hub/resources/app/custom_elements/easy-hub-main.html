@@ -394,6 +394,7 @@
                 var result = this.get_process_response(proc);
                 console.log(result);
                 this.set('currentRepo.currentBranch', finalName);
+                this.writeTerminal(proc.command+"\n"+result);
             } else {
                 var result = this.get_process_error(proc);
                 console.error(result);
