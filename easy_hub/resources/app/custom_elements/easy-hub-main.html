@@ -179,6 +179,7 @@
             <paper-button raised class="cloneButton" on-tap="_setTerminalStyles">O.K.</paper-button>
         </paper-dialog>
 
+        <paper-toast id="toastNotify" text="placeholder"></paper-toast>
         <paper-toast id="cloneToast" text="Cloning..."></paper-toast>
         <paper-dialog id="cloneDialog" modal>
             <paper-icon-button icon="icons:close" dialog-dismiss style="margin-top: 0px; top: 0px; position: absolute; right: 0px;"></paper-icon-button>
@@ -342,7 +343,18 @@
                 value: function () {
                     return [];
                 }
+            },
+            terminalQueue: {
+                type: Array,
+                value: function () {
+                    return [];
+                },
+            },
+            writeTermIsRunning: {
+                type: Boolean,
+                value: false
             }
+
         },
 
         inCommandsToggle: function(e) {
@@ -354,6 +366,19 @@
         localCommandsToggle: function() {
             this.$.localCommands.toggle();
         },
+
+        addWriteTerminalCall: function (value, speed) {
+            this.terminalQueue.push(
+                function () {
+                    this.writeTerminal(value, speed, this);
+                }.bind(this)
+            )
+            if(this.writeTermIsRunning){
+                return;
+            }
+            (this.terminalQueue.shift())();
+        },
+
 
         _setTerminalStyles: function () {
             this.customStyle["--terminal-font-size"] = this.$.fontInput.value+"pt";
@@ -394,7 +419,7 @@
                 var result = this.get_process_response(proc);
                 console.log(result);
                 this.set('currentRepo.currentBranch', finalName);
-                this.writeTerminal(proc.command+"\n"+result);
+                this.addWriteTerminalCall(proc.command+"\n"+result);
             } else {
                 var result = this.get_process_error(proc);
                 console.error(result);
@@ -421,7 +446,7 @@
                 // set the branch selector to the new branch
                 this.async(function () {
                     this._selectBranch(newBranchName);
-                }.bind(this), 100);
+                }.bind(this), 500);
             } else {
                 var result = this.get_process_error(proc);
                 console.error(result);
@@ -456,7 +481,7 @@
             if(proc.process.status == 0) {
                 var result = this.get_process_response(proc).split('\n');
                 if (!isCommit){
-                    this.writeTerminal("git status \n"+this.get_process_response(proc),5);
+                    this.addWriteTerminalCall("git status \n"+this.get_process_response(proc),5);
                 }
                 for(i=0; i<result.length; i++) {
                     if(result[i].includes('modified:') || result[i].includes('deleted: ')) {
@@ -483,7 +508,6 @@
             } else {
                 console.error(this.get_process_error(proc));
             }
-
             // update file count badge
             this.set('changedFileCount', numModifications + numUntracked);
         },
@@ -505,7 +529,9 @@
             this._updateChangeStatus();
             var currentBranch = this._getCurrentBranch();
             this.set('currentRepo.currentBranch', currentBranch);
-            this._selectBranch(currentBranch);
+            this.async(function () {
+                this._selectBranch(currentBranch);
+            }.bind(this), 500);
         },
 
         /**
@@ -616,7 +642,7 @@
             this.async(function () {
                 this._clone();
                 this.$.cloneToast.close();
-            }.bind(this),100);
+            }.bind(this),500);
         },
 
         _clone: function() {
@@ -636,7 +662,7 @@
                         else{
                             this.push('applicationData.repoArray', repo);
                         }
-                        this.writeTerminal(cloneProc.command+"\nClone Successful!");
+                        this.addWriteTerminalCall(cloneProc.command+"\nClone Successful!");
                         this.$.toastNotify.text = "Repo added!";
                         this.$.toastNotify.open();
                         this._updateApplicationData();
@@ -694,7 +720,7 @@
                     if (commitProc) {
                         if(this.$.commandInput.value) {
                             this.$.dialog.toggle();
-                            this.writeTerminal(commitProc.command);
+                            this.addWriteTerminalCall(commitProc.command);
                             this._updateChangeStatus(1);
                             this.$.commandInput.value="";
                             this.commitCounter++;
@@ -708,15 +734,15 @@
                 case("Push Message"):
                     var pushProc = gitUtils.push(this.currentRepo.destination+this.currentRepo.name, this.OS_SHELL);
                     if (pushProc) {
-                            this.writeTerminal(pushProc.command);
-                            this.commitCounter=0;
+                        this.addWriteTerminalCall(pushProc.command);
+                        this.commitCounter=0;
                     }
                     break;
 
                 case("Pull Message"):
                     var pullProc = gitUtils.pull(this.currentRepo.destination+this.currentRepo.name);
                     if (pullProc) {
-                        this.writeTerminal(pullProc.command);
+                        this.addWriteTerminalCall(pullProc.command);
                         this.commitCounter=0;
                     }
                     break;
@@ -725,7 +751,7 @@
                     var resetProc = gitUtils.reset(this.currentRepo.destination+this.currentRepo.name);
                     var cleanProc = gitUtils.clean(this.currentRepo.destination+this.currentRepo.name);
                     if (resetProc) {
-                        this.writeTerminal(resetProc.command+ "\n> " + cleanProc.command );
+                        this.addWriteTerminalCall(resetProc.command+ "\n> " + cleanProc.command );
                         this.commitCounter=0;
 
                     }
@@ -802,7 +828,7 @@
         _delete: function () {
             var actualPath = this.currentRepo.destination;
             var deleteProc = repoDelete(this.currentRepo.name, actualPath);
-            this.writeTerminal("Repo Deleted");
+            this.addWriteTerminalCall("Repo Deleted");
             //deleting current_repo from repository selection
             for (var i = 0; i < this.applicationData.repoArray.length; i++){
                 //This if statement only occurs when a repo has been removed
@@ -820,18 +846,28 @@
             return this.get_process_response(branchProc).trim();
         },
 
-        writeTerminal: function (input,speed){
+        writeTerminal: function (input,speed,context){
+            context.writeTermIsRunning = true;
             if (!speed){
-                speed=25;
+                speed = 25;
             }
             var temp = "\n> "+ input;
-            Sequencr.for(0, temp.length, function (i) {
-                this.$.terminal.value += temp[i];
-                if(i == temp.length-1){
-                    this.$.terminal.scrollTop = Number.MAX_SAFE_INTEGER;
+            Sequencr.promiseFor(0, temp.length, function (resolve, reject, i) {
+                setTimeout(function(){
+                    context.$.terminal.value += temp[i];
+                    if(i == temp.length-1){
+                        context.$.terminal.scrollTop = Number.MAX_SAFE_INTEGER;
+                    }
+                    resolve("lol");
+                }.bind(context), speed);
+            }.bind(context),speed).then(function () {
+                if(context.terminalQueue.length > 0){
+                    (context.terminalQueue.shift())();
                 }
-            }.bind(this),speed,null);
-
+                else{
+                    context.writeTermIsRunning = false;
+                }
+            });
         },
 
         ready: function (e) {
