@@ -76,9 +76,9 @@ gitUtils.config = function (dest) {
     console.warn("config not implemented")
 };
 
-gitUtils.push = function (branch, dest) {
+gitUtils.push = function (dest) {
     //need origin, need master
-    var baseCmd = 'git push origin '+ branch;
+    var baseCmd = 'git push';
     return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});};
 
 gitUtils.getStatus = function (dest) {

@@ -253,7 +253,7 @@
                         <button on-click="localCommandsToggle" class="heading">Local Commands</button>
                         <iron-collapse id="localCommands">
                             <div style="display: flex; justify-content: center; flex-direction: column;">
-                                <paper-button raised on-tap="_toggleNewBranch" disabled="{{!repoSelected}}">New Local Branch</paper-button>
+                                <paper-button id="localBranchCommand" raised on-tap="_toggleNewBranch" disabled="{{!repoSelected}}">New Local Branch</paper-button>
                                 <paper-button id="commitCommand" raised on-tap="_commit" disabled="[[!changedFileCount]]">Commit</paper-button>
                                 <paper-button id="resetRepo" raised on-tap="_reset" disabled="{{!repoSelected}}">Reset</paper-button>
                                 <paper-button id="deleteRepo" raised on-tap="_delete" disabled="{{!repoSelected}}">Delete</paper-button>
@@ -455,6 +455,9 @@
 
             if(proc.process.status == 0) {
                 var result = this.get_process_response(proc).split('\n');
+                if (!isCommit){
+                    this.writeTerminal("git status \n"+this.get_process_response(proc),5);
+                }
                 for(i=0; i<result.length; i++) {
                     if(result[i].includes('modified:') || result[i].includes('deleted: ')) {
                         numModifications += 1;
@@ -480,9 +483,7 @@
             } else {
                 console.error(this.get_process_error(proc));
             }
-            if (!isCommit){
-                this.writeTerminal("git status \n"+this.get_process_response(proc),5);
-            }
+
             // update file count badge
             this.set('changedFileCount', numModifications + numUntracked);
         },
@@ -693,7 +694,7 @@
                     if (commitProc) {
                         if(this.$.commandInput.value) {
                             this.$.dialog.toggle();
-                            this.writeTerminal("git -a -m * "+"\""+this.$.commandInput.value+"\"");
+                            this.writeTerminal(commitProc.command);
                             this._updateChangeStatus(1);
                             this.$.commandInput.value="";
                             this.commitCounter++;
@@ -705,9 +706,9 @@
                     break;
 
                 case("Push Message"):
-                    var pushProc = gitUtils.push(this.currentRepo.branches,this.currentRepo.destination+this.currentRepo.name, this.OS_SHELL);
+                    var pushProc = gitUtils.push(this.currentRepo.destination+this.currentRepo.name, this.OS_SHELL);
                     if (pushProc) {
-                            this.writeTerminal("git push origin "+this.currentRepo.branches);
+                            this.writeTerminal(pushProc.command);
                             this.commitCounter=0;
                     }
                     break;
@@ -715,16 +716,16 @@
                 case("Pull Message"):
                     var pullProc = gitUtils.pull(this.currentRepo.destination+this.currentRepo.name);
                     if (pullProc) {
-                        this.writeTerminal("git pull");
+                        this.writeTerminal(pullProc.command);
                         this.commitCounter=0;
                     }
                     break;
 
                 case("Reset Message"):
                     var resetProc = gitUtils.reset(this.currentRepo.destination+this.currentRepo.name);
-                    gitUtils.clean(this.currentRepo.destination+this.currentRepo.name);
+                    var cleanProc = gitUtils.clean(this.currentRepo.destination+this.currentRepo.name);
                     if (resetProc) {
-                        this.writeTerminal("git reset --hard \n> git clean -df");
+                        this.writeTerminal(resetProc.command+ "\n> " + cleanProc.command );
                         this.commitCounter=0;
 
                     }
@@ -852,6 +853,15 @@
             $( "#pushCommand" ).hover(
                 function(){
                    this.$.commandArea.value=gitInfo.pushMessage;
+                }.bind(this),
+                function(){
+                    this.$.commandArea.value="";
+                }.bind(this)
+            );
+
+            $( "#localBranchCommand" ).hover(
+                function(){
+                    this.$.commandArea.value=gitInfo.localBranchMessage;
                 }.bind(this),
                 function(){
                     this.$.commandArea.value="";
