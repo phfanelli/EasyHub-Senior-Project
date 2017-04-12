@@ -477,7 +477,7 @@
             var numModifications = 0;
             var numUntracked = 0;
             var index = 0;
-
+            this._getCommitStatus(proc);
             if(proc.process.status == 0) {
                 var result = this.get_process_response(proc).split('\n');
                 if (!isCommit){
@@ -706,6 +706,24 @@
                 this.$.dialog.toggle();
             }
         },
+        _getCommitStatus:function(statusProc){
+                if(this.get_process_response(statusProc).match("by ([0-9]+) commit")){
+                    this.commitCounter = this.get_process_response(statusProc).match("by ([0-9]+) commit")[1];
+                }else if(this.get_process_response(statusProc).match("nothing to commit, working tree clean")){
+                    this.commitCounter=0;
+                }
+        },
+
+        _diff: function(){
+            var diffProc = gitUtils.diff(this.currentRepo.destination+this.currentRepo.name);
+            var response = this.get_process_response(diffProc);
+            if(response == ""){
+                this.writeTerminal("No Outstanding Changes.");
+            }
+            else this.writeTerminal(response);
+
+        },
+
 
         _reset:function(){
             this.set('commandType', "Reset Message");
@@ -723,7 +741,6 @@
                             this.addWriteTerminalCall(commitProc.command);
                             this._updateChangeStatus(1);
                             this.$.commandInput.value="";
-                            this.commitCounter++;
                         }else{
                             this.$.toastNotify.text = "No Message in Input Box, Cannot Commit";
                             this.$.toastNotify.open();
@@ -735,7 +752,7 @@
                     var pushProc = gitUtils.push(this.currentRepo.destination+this.currentRepo.name, this.OS_SHELL);
                     if (pushProc) {
                         this.addWriteTerminalCall(pushProc.command);
-                        this.commitCounter=0;
+                        this.commitCounter = 0;
                     }
                     break;
 
@@ -743,7 +760,7 @@
                     var pullProc = gitUtils.pull(this.currentRepo.destination+this.currentRepo.name);
                     if (pullProc) {
                         this.addWriteTerminalCall(pullProc.command);
-                        this.commitCounter=0;
+                        this.commitCounter = 0;
                     }
                     break;
 
@@ -752,7 +769,6 @@
                     var cleanProc = gitUtils.clean(this.currentRepo.destination+this.currentRepo.name);
                     if (resetProc) {
                         this.addWriteTerminalCall(resetProc.command+ "\n> " + cleanProc.command );
-                        this.commitCounter=0;
 
                     }
                     break;
