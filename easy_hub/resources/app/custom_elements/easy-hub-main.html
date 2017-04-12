@@ -269,7 +269,7 @@
             <div id="terminalSide" style="width:50%; background: black;">
                 <paper-toolbar style="background: black; display: flex; justify-content: center;">
                     <div>TERMINAL</div>
-                    <paper-button class="terminalSettings" id="clearButton" raised on-tap="_clearTerminal" style="left: 0px;">Clear</paper-button>
+                    <paper-button class="terminalSettings" id="clearButton" raised on-tap="_clearTerminal" disabled="{{writeTermIsRunning}}" style="left: 0px;">Clear</paper-button>
                     <paper-button class="terminalSettings" id="styleButton" raised on-tap="_toggleStyleDialog" style="left: 58px;">Styles</paper-button>
                 </paper-toolbar>
                 <textarea id="terminal" style="resize: none; width: 100%; height: 100%; background: black; border-color: grey;" readonly ></textarea>
