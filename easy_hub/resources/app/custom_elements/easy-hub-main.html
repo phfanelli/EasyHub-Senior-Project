@@ -232,7 +232,7 @@
                         <paper-icon-button id="updateStatusBtn" on-tap="_updateCurrentRepoInfo" icon="refresh" style="color: white" hidden$="{{!repoSelected}}"></paper-icon-button>
                     </div>
                     <div id="statusContainer">
-                        <span style="-webkit-user-select: none; font-family: sans-serif; font-size: 10pt; vertical-align: middle; text-align: center; display: table-cell;">File Differences</span>
+                        <paper-button raised on-tap="_diff">File Differences</paper-button>
                         <paper-badge id="statusBadge" label="{{changedFileCount}}"></paper-badge>
                     </div>
                 </paper-toolbar>
@@ -317,11 +317,6 @@
             commitCounter:{
                 type: Number,
                 value:0
-            },
-
-            OS_SLASH: {
-                type: String,
-                value: "/"
             },
             DATA_PATH: {
                 type: Object,
@@ -650,7 +645,7 @@
             if(this._cloneInfoIsValid()){
                 var remote = this.$.cloneRemote.value;
                 var name = remote.split("/").pop().split(".")[0];
-                var dest = this.$.cloneDest.value + this.OS_SLASH;
+                var dest = this.$.cloneDest.value + OS_SLASH;
                 var repo = {url: remote, destination: dest, name: name, type: "git"};
                 if(!this.getRepoByUrl(remote)){
                     var cloneProc = gitUtils.clone(remote, dest);
@@ -706,6 +701,17 @@
                 this.$.dialog.toggle();
             }
         },
+
+        _diff: function(){
+            var diffProc = gitUtils.diff(this.currentRepo.destination+this.currentRepo.name);
+            var response = this.get_process_response(diffProc);
+            if(response == ""){
+                this.writeTerminal("No Outstanding Changes.");
+            }
+            else this.writeTerminal(response);
+
+        },
+
         _getCommitStatus:function(statusProc){
                 if(this.get_process_response(statusProc).match("by ([0-9]+) commit")){
                     this.commitCounter = this.get_process_response(statusProc).match("by ([0-9]+) commit")[1];
@@ -722,8 +728,8 @@
         _setVal:function(){
             switch(this.commandType) {
                 case("Commit Message"):
-                    gitUtils.add(this.currentRepo.destination+this.currentRepo.name, this.OS_SHELL);
-                    var commitProc = gitUtils.commit(this.$.commandInput.value, this.currentRepo.destination+this.currentRepo.name, this.OS_SHELL);
+                    gitUtils.add(this.currentRepo.destination+this.currentRepo.name, OS_SHELL);
+                    var commitProc = gitUtils.commit(this.$.commandInput.value, this.currentRepo.destination+this.currentRepo.name, OS_SHELL);
                     if (commitProc) {
                         if(this.$.commandInput.value) {
                             this.$.dialog.toggle();
@@ -738,7 +744,8 @@
                     break;
 
                 case("Push Message"):
-                    var pushProc = gitUtils.push(this.currentRepo.destination+this.currentRepo.name, this.OS_SHELL);
+
+                    var pushProc = gitUtils.push(this.currentRepo.destination+this.currentRepo.name, OS_SHELL);
                     if (pushProc) {
                         this.addWriteTerminalCall(pushProc.command);
                         this.commitCounter = 0;
@@ -798,21 +805,23 @@
                 this.DATA_PATH.WRITE = "./resources/app/data.json";
                 this.DATA_PATH.READ = "./data.json";
                 OS_SHELL = "cmd.exe";
-                //possibly set this.OS_SLASH
+                OS_SLASH = "\\";
             }
             else if (window.navigator.appVersion.indexOf("Mac") != -1){
                 OSType = "MacOS";
                 this.DATA_PATH.WRITE = "data.json";
                 this.DATA_PATH.READ = "data.json";
                 OS_SHELL = "/bin/sh";
-                //possibly set this.OS_SLASH
+                OS_SLASH = "/";
+
             }
             else if (window.navigator.appVersion.indexOf("Linux") != -1){
                 OSType = "Linux";
-                //possibly set this.OS_SLASH
                 this.DATA_PATH.WRITE = "data.json";
                 this.DATA_PATH.READ = "data.json";
                 OS_SHELL = "/bin/bash";
+                OS_SLASH = "/";
+
             }
 
             //write the OS Type to file
@@ -967,6 +976,7 @@
             return String(proc.process.output[1]);
         },
 
+        //status 129 = not a git repository
         get_process_error: function(proc) {
             if(proc.process.output == null) {
                 return String(proc.process.error);
