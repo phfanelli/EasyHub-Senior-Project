@@ -64,7 +64,7 @@ gitUtils.commit = function (message, dest) {
 };
 
 gitUtils.diff = function(dest){
-    if(OS_SHELL == 'cmd.exe') var baseCmd = 'git diff --cached';
+    if(OS_SHELL == 'cmd.exe') var baseCmd = 'git diff ';
     else var baseCmd = 'git diff';
     return spawn_sync(baseCmd, [], {cwd:dest, shell: OS_SHELL});
 };
