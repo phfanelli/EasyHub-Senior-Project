@@ -706,9 +706,11 @@
             var diffProc = gitUtils.diff(this.currentRepo.destination+this.currentRepo.name);
             var response = this.get_process_response(diffProc);
             if(response == ""){
-                this.writeTerminal("No Outstanding Changes.");
+                this.addWriteTerminalCall("No Outstanding Changes.");
             }
-            else this.writeTerminal(response);
+            else {
+                this.addWriteTerminalCall(diffProc.command+"\n"+response);
+            }
 
         },
 
