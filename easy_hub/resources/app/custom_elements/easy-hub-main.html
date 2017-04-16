@@ -104,6 +104,13 @@
             top: 42px !important;
         }
 
+        #statusBadge {
+            cursor: pointer;
+            top: -10px !important;
+            left: -15px !important;
+            position: relative;
+        }
+
         #terminal{
             text-align: left;
             background-color: black;
@@ -120,7 +127,7 @@
 
         #statusContainer > paper-badge {
             --paper-badge-margin-left: 20px;
-            --paper-badge-margin-bottom: 0px;
+            --paper-badge-margin-bottom: -10px;
             --paper-badge-background: var(--paper-purple-200);
         }
 
@@ -231,9 +238,9 @@
                         </paper-dropdown-menu>
                         <paper-icon-button id="updateStatusBtn" on-tap="_updateCurrentRepoInfo" icon="refresh" style="color: white" hidden$="{{!repoSelected}}"></paper-icon-button>
                     </div>
-                    <div id="statusContainer">
-                        <paper-button raised on-tap="_diff">File Differences</paper-button>
-                        <paper-badge id="statusBadge" label="{{changedFileCount}}"></paper-badge>
+                    <div id="statusContainer" style="display: flex;">
+                        <span style="-webkit-user-select: none; font-family: sans-serif; font-size: 10pt; vertical-align: middle; text-align: center; display: table-cell;">File Differences</span>
+                        <paper-badge id="statusBadge" on-tap="_diff" label="{{changedFileCount}}"></paper-badge>
                     </div>
                 </paper-toolbar>
                 <div id="horizDivider" style="width:100%; background: black; height:1px"></div>
@@ -351,7 +358,6 @@
             }
 
         },
-
         inCommandsToggle: function(e) {
             this.$.inCommands.toggle();
         },
