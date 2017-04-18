@@ -205,7 +205,7 @@
                 </div>
                 <div id="verticalLine"></div>
                 <div id="createLocal">
-                    <paper-button raised class="cloneButton"  on-tap="_initLocal" style="height: 40px">create local</paper-button>
+                    <paper-button raised class="cloneButton"  on-tap="displayImplementationWarning" style="height: 40px">create local</paper-button>
                 </div>
             </div>
         </paper-dialog>
@@ -379,6 +379,11 @@
                 return;
             }
             (this.terminalQueue.shift())();
+        },
+
+        displayImplementationWarning: function () {
+            this.$.toastNotify.text = 'This feature still needs to be implemented!';
+            this.$.toastNotify.open();
         },
 
 
@@ -680,7 +685,7 @@
                 }
             }
             else{
-                this.$.toastNotify.text = "Invalid repo information ya silly cactus!";
+                this.$.toastNotify.text = "Invalid repo information!";
                 this.$.toastNotify.open();
             }
 
