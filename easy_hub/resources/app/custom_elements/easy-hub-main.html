@@ -16,6 +16,7 @@
     <link rel="import" href="../bower_components/paper-input/paper-textarea.html">
     <link rel="import" href="../bower_components/paper-badge/paper-badge.html">
     <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+    <link rel="import" href="../bower_components/iron-a11y-keys/iron-a11y-keys.html">
 
 </head>
 
@@ -172,6 +173,7 @@
              <paper-icon-button icon="icons:close" dialog-dismiss style="margin-top: 0px; top: 0px; position: absolute; right: 0px;"></paper-icon-button>
              <paper-input id="commandInput" label="{{commandType}}"></paper-input>
              <paper-button raised class="cloneButton" on-tap="_setVal" value="12">OKAY</paper-button>
+             <iron-a11y-keys id="commitEnter" target="[[commitTarget]]" keys="enter" on-keys-pressed="_setVal"></iron-a11y-keys>
         </paper-dialog>
 
         <paper-dialog id="styleDialog" modal>
@@ -184,6 +186,7 @@
                     <paper-item>Courier New</paper-item>
                 </paper-listbox>
             </paper-dropdown-menu>
+            <iron-a11y-keys id="styleEnter" target="[[styleTarget]]" keys="enter" on-keys-pressed="_setTerminalStyles"></iron-a11y-keys>
             <paper-button raised class="cloneButton" on-tap="_setTerminalStyles">O.K.</paper-button>
         </paper-dialog>
 
@@ -208,6 +211,7 @@
                     <paper-button raised class="cloneButton"  on-tap="displayImplementationWarning" style="height: 40px">create local</paper-button>
                 </div>
             </div>
+            <iron-a11y-keys id="cloneEnter" target="[[cloneTarget]]" keys="enter" on-keys-pressed="_cloneCall"></iron-a11y-keys>
         </paper-dialog>
 
         <paper-dialog id="newBranchDialog" modal>
@@ -215,6 +219,7 @@
             <paper-input id="newBranchName" label="Branch Name:"></paper-input>
             <paper-button raised on-tap="_newLocalBranch">Ok</paper-button>
             <paper-button raised on-tap="_cancelNewBranch">Cancel</paper-button>
+            <iron-a11y-keys id="newBranchEnter" target="[[newBranchTarget]]" keys="enter" on-keys-pressed="_newLocalBranch"></iron-a11y-keys>
         </paper-dialog>
 
         <div id="mainWrapper" style="display: flex; width: 100%; height: 100%">
@@ -356,7 +361,32 @@
             writeTermIsRunning: {
                 type: Boolean,
                 value: false
-            }
+            },
+            // html targets
+            commitTarget: {
+                type: Object,
+                value: function () {
+                    return this.$.dialog;
+                }
+            },
+            cloneTarget: {
+                type: Object,
+                value: function () {
+                    return this.$.cloneDialog;
+                }
+            },
+            styleTarget: {
+                type: Object,
+                value: function () {
+                    return this.$.styleDialog;
+                }
+            },
+            newBranchTarget: {
+                type: Object,
+                value: function () {
+                    return this.$.newBranchDialog;
+                }
+            },
 
         },
         inCommandsToggle: function(e) {
