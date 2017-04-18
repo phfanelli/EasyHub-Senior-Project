@@ -64,7 +64,7 @@ gitUtils.commit = function (message, dest) {
 };
 
 gitUtils.diff = function(dest){
-    var baseCmd = 'git diff';
+    var baseCmd = 'git diff HEAD';
     return spawn_sync(baseCmd, [], {cwd:dest, shell: OS_SHELL});
 };
 
@@ -72,6 +72,11 @@ gitUtils.add = function (dest) {
     var baseCmd = 'git add .';
     return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
 };
+
+gitUtils.addREADME = function (dest) {
+    var baseCmd = 'echo.>README.md';
+    return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});
+}
 
 gitUtils.config = function (dest) {
     //git config --global user.name "Sam Smith"
@@ -81,9 +86,9 @@ gitUtils.config = function (dest) {
     console.warn("config not implemented")
 };
 
-gitUtils.push = function (dest) {
+gitUtils.push = function (dest,branchName) {
     //need origin, need master
-    var baseCmd = 'git push';
+    var baseCmd = 'git push -u origin '+branchName;
     return spawn_sync(baseCmd, [], {cwd: dest, shell: OS_SHELL});};
 
 gitUtils.getStatus = function (dest) {

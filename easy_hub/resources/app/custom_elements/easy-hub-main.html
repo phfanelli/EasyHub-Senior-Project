@@ -369,10 +369,10 @@
             this.$.localCommands.toggle();
         },
 
-        addWriteTerminalCall: function (value, speed) {
+        addWriteTerminalCall: function (value, speed, carrotSupress) {
             this.terminalQueue.push(
                 function () {
-                    this.writeTerminal(value, speed, this);
+                    this.writeTerminal(value, speed, carrotSupress, this);
                 }.bind(this)
             )
             if(this.writeTermIsRunning){
@@ -491,7 +491,7 @@
                     this.addWriteTerminalCall("git status \n"+this.get_process_response(proc),5);
                 }
                 for(i=0; i<result.length; i++) {
-                    if(result[i].includes('modified:') || result[i].includes('deleted: ')) {
+                    if(result[i].includes('modified:') || result[i].includes('deleted: ') || result[i].includes('new file: ')) {
                         numModifications += 1;
                         this.changedFiles.push(result[i].replace('\t', ''));
                     } else if(result[i].includes('Untracked files:')) {
@@ -525,11 +525,14 @@
          **/
         _updateCurrentRepoInfo: function() {
 
+
+
             this.set('repoSelected', true);
             // get selected repo
             var label = this.$.repoSelector.selectedItemLabel;
             // get path of selected repo
             this.currentRepo = this.getRepoByName(label);
+            this.addWriteTerminalCall("\n----------SWITCHING TO REPO \""+label+"\"----------\n", 5, true);
             // update branches of repository
             this._updateRepoBranches();
             // fetch status and update notification accordingly
@@ -574,7 +577,21 @@
                     console.error(this.get_process_error(result));
                 }
             }
+            if(this.currentRepo.remoteBranches.length == 0 && this.currentRepo.localBranches == 0){
+                // we got an empty repo boys, set er up
+                this._setupNewRepo();
+                this._updateRepoBranches();
+                this._updateCurrentRepoInfo();
+                return;
+            }
             this._setCanonicalBranchList();
+        },
+
+        _setupNewRepo: function() {
+            gitUtils.addREADME(this.currentRepo.destination+this.currentRepo.name);
+            gitUtils.add(this.currentRepo.destination+this.currentRepo.name);
+            gitUtils.commit("INITIAL COMMIT", this.currentRepo.destination+this.currentRepo.name);
+            gitUtils.push(this.currentRepo.destination+this.currentRepo.name, "master");
         },
 
         /**
@@ -742,8 +759,8 @@
         _setVal:function(){
             switch(this.commandType) {
                 case("Commit Message"):
-                    gitUtils.add(this.currentRepo.destination+this.currentRepo.name, OS_SHELL);
-                    var commitProc = gitUtils.commit(this.$.commandInput.value, this.currentRepo.destination+this.currentRepo.name, OS_SHELL);
+                    gitUtils.add(this.currentRepo.destination+this.currentRepo.name);
+                    var commitProc = gitUtils.commit(this.$.commandInput.value, this.currentRepo.destination+this.currentRepo.name);
                     if (commitProc) {
                         if(this.$.commandInput.value) {
                             this.$.dialog.toggle();
@@ -759,7 +776,7 @@
 
                 case("Push Message"):
 
-                    var pushProc = gitUtils.push(this.currentRepo.destination+this.currentRepo.name, OS_SHELL);
+                    var pushProc = gitUtils.push(this.currentRepo.destination+this.currentRepo.name, this.currentRepo.currentBranch);
                     if (pushProc) {
                         this.addWriteTerminalCall(pushProc.command);
                         this.commitCounter = 0;
@@ -874,12 +891,17 @@
             return this.get_process_response(branchProc).trim();
         },
 
-        writeTerminal: function (input,speed,context){
+        writeTerminal: function (input,speed,carrotSupress,context){
             context.writeTermIsRunning = true;
             if (!speed){
                 speed = 25;
             }
-            var temp = "\n> "+ input;
+            if(carrotSupress){
+                var temp = "\n"+ input;
+            }
+            else{
+                var temp = "\n> "+ input;
+            }
             Sequencr.promiseFor(0, temp.length, function (resolve, reject, i) {
                 setTimeout(function(){
                     context.$.terminal.value += temp[i];
