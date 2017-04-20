@@ -66,6 +66,7 @@
         .cloneButton  {
             background-color: purple;
             color: lightgray;
+            margin: 0.5em;
         }
         #cloneDest ::content #input{
             text-overflow: ellipsis;
@@ -172,7 +173,7 @@
         <paper-dialog id="dialog" modal>
              <paper-icon-button icon="icons:close" dialog-dismiss style="margin-top: 0px; top: 0px; position: absolute; right: 0px;"></paper-icon-button>
              <paper-input id="commandInput" label="{{commandType}}"></paper-input>
-             <paper-button raised class="cloneButton" on-tap="_setVal" value="12">OKAY</paper-button>
+             <paper-button raised class="cloneButton" on-tap="_setVal" value="12">OK</paper-button>
              <iron-a11y-keys id="commitEnter" target="[[commitTarget]]" keys="enter" on-keys-pressed="_setVal"></iron-a11y-keys>
              <iron-a11y-keys id="commitEscape" target="[[commitTarget]]" keys="esc" on-keys-pressed="_closeCommit"></iron-a11y-keys>
         </paper-dialog>
@@ -189,7 +190,7 @@
             </paper-dropdown-menu>
             <iron-a11y-keys id="styleEnter" target="[[styleTarget]]" keys="enter" on-keys-pressed="_setTerminalStyles"></iron-a11y-keys>
             <iron-a11y-keys id="styleEscape" target="[[styleTarget]]" keys="esc" on-keys-pressed="_closeStyles"></iron-a11y-keys>
-            <paper-button raised class="cloneButton" on-tap="_setTerminalStyles">O.K.</paper-button>
+            <paper-button raised class="cloneButton" on-tap="_setTerminalStyles">OK</paper-button>
         </paper-dialog>
 
         <paper-toast id="toastNotify" text="placeholder"></paper-toast>
@@ -278,7 +279,7 @@
                             </div>
                         </iron-collapse>
                     </div>
-                  <textarea id="commandArea" style="width: 70%; height: 100%; background:darkgrey; color:whitesmoke" readonly> </textarea>
+                  <textarea id="commandArea" style="width: 70%; height: 100%; background:darkgrey; color:black" readonly> </textarea>
                 </div>
 
             </div>
@@ -786,7 +787,7 @@
                 this.addWriteTerminalCall("No Outstanding Changes.");
             }
             else {
-                this.addWriteTerminalCall(diffProc.command+"\n"+response);
+                this.addWriteTerminalCall(diffProc.command+"\n"+response, 10);
             }
 
         },
