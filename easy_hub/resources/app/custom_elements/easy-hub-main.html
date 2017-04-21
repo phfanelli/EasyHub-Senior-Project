@@ -66,6 +66,7 @@
         .cloneButton  {
             background-color: purple;
             color: lightgray;
+            margin: 0.5em;
         }
         #cloneDest ::content #input{
             text-overflow: ellipsis;
@@ -171,13 +172,13 @@
 
         <paper-dialog id="dialog" modal>
              <paper-icon-button icon="icons:close" dialog-dismiss style="margin-top: 0px; top: 0px; position: absolute; right: 0px;"></paper-icon-button>
-             <paper-input id="commandInput" label="{{commandType}}"></paper-input>
-             <paper-button raised class="cloneButton" on-tap="_setVal" value="12">OKAY</paper-button>
+             <paper-input style="margin-top: 0px; padding-bottom: 5px;" id="commitInput" label="{{commandType}}" required auto-validate error-message="Must have commit message!"></paper-input>
+             <paper-button style="margin-left: 22px;" raised class="cloneButton" on-tap="_setVal" value="12">OK</paper-button>
              <iron-a11y-keys id="commitEnter" target="[[commitTarget]]" keys="enter" on-keys-pressed="_setVal"></iron-a11y-keys>
              <iron-a11y-keys id="commitEscape" target="[[commitTarget]]" keys="esc" on-keys-pressed="_closeCommit"></iron-a11y-keys>
         </paper-dialog>
 
-        <paper-dialog id="styleDialog" modal>
+        <paper-dialog id="styleDialog" style="max-width: 250px;" modal>
             <paper-icon-button icon="icons:close" dialog-dismiss style="margin-top: 0px; top: 0px; position: absolute; right: 0px;"></paper-icon-button>
             <paper-input id="fontInput" type="number" max="32" min="6" label="Font Size" value="10"></paper-input>
             <paper-dropdown-menu class="custom" id="fontSelector" label="Font Type">
@@ -189,7 +190,7 @@
             </paper-dropdown-menu>
             <iron-a11y-keys id="styleEnter" target="[[styleTarget]]" keys="enter" on-keys-pressed="_setTerminalStyles"></iron-a11y-keys>
             <iron-a11y-keys id="styleEscape" target="[[styleTarget]]" keys="esc" on-keys-pressed="_closeStyles"></iron-a11y-keys>
-            <paper-button raised class="cloneButton" on-tap="_setTerminalStyles">O.K.</paper-button>
+            <paper-button style="float: right;" raised class="cloneButton" on-tap="_setTerminalStyles">OK</paper-button>
         </paper-dialog>
 
         <paper-toast id="toastNotify" text="placeholder"></paper-toast>
@@ -217,11 +218,11 @@
             <iron-a11y-keys id="cloneEsc" target="[[cloneTarget]]" keys="esc" on-keys-pressed="_closeClone"></iron-a11y-keys>
         </paper-dialog>
 
-        <paper-dialog id="newBranchDialog" modal>
+        <paper-dialog id="newBranchDialog" style="max-width: 250px;" modal>
             <h2>New Local Branch</h2>
-            <paper-input id="newBranchName" label="Branch Name:"></paper-input>
-            <paper-button raised on-tap="_newLocalBranch">Ok</paper-button>
-            <paper-button raised on-tap="_cancelNewBranch">Cancel</paper-button>
+            <paper-input style="margin-top: 0px;" id="newBranchName" label="Branch Name:" required auto-validate error-message="Branch must have a name!"></paper-input>
+            <paper-button raised class="cloneButton" on-tap="_newLocalBranch" style="margin-left: 20px;">Ok</paper-button>
+            <paper-button raised class="cloneButton" on-tap="_cancelNewBranch">Cancel</paper-button>
             <iron-a11y-keys id="newBranchEnter" target="[[newBranchTarget]]" keys="enter" on-keys-pressed="_newLocalBranch"></iron-a11y-keys>
             <iron-a11y-keys id="newBranchEsc" target="[[newBranchTarget]]" keys="esc" on-keys-pressed="_closeNewBranch"></iron-a11y-keys>
         </paper-dialog>
@@ -278,7 +279,7 @@
                             </div>
                         </iron-collapse>
                     </div>
-                  <textarea id="commandArea" style="width: 70%; height: 100%; background:darkgrey; color:whitesmoke" readonly> </textarea>
+                  <textarea id="commandArea" style="width: 70%; height: 100%; background:darkgrey; color:black" readonly> </textarea>
                 </div>
 
             </div>
@@ -481,7 +482,12 @@
         },
 
         _newLocalBranch: function() {
-            var newBranchName = this.$.newBranchName.value;
+            var newBranchName = this.$.newBranchName.value.trim();
+            if(newBranchName.length == 0){
+                this.$.toastNotify.text = 'Please input a branch name and try again.';
+                this.$.toastNotify.open();
+                return;
+            }
             var branches = _.map(this.currentRepo.canonicalBranchList, 'name');
             if(_.includes(branches, newBranchName)) {
 //                console.error('Branch with given name already exists: ' + newBranchName);
@@ -786,7 +792,7 @@
                 this.addWriteTerminalCall("No Outstanding Changes.");
             }
             else {
-                this.addWriteTerminalCall(diffProc.command+"\n"+response);
+                this.addWriteTerminalCall(diffProc.command+"\n"+response, 10);
             }
 
         },
@@ -809,13 +815,13 @@
             switch(this.commandType) {
                 case("Commit Message"):
                     gitUtils.add(this.currentRepo.destination+this.currentRepo.name);
-                    var commitProc = gitUtils.commit(this.$.commandInput.value, this.currentRepo.destination+this.currentRepo.name);
+                    var commitProc = gitUtils.commit(this.$.commitInput.value, this.currentRepo.destination+this.currentRepo.name);
                     if (commitProc) {
-                        if(this.$.commandInput.value) {
+                        if(this.$.commitInput.value.trim().length != 0) {
                             this.$.dialog.toggle();
                             this.addWriteTerminalCall(commitProc.command+"\n"+this.get_process_response(commitProc)+this.get_process_error(commitProc));
                             this._updateChangeStatus(1);
-                            this.$.commandInput.value="";
+                            this.$.commitInput.value="";
                         }else{
                             this.$.toastNotify.text = "No Message in Input Box, Cannot Commit";
                             this.$.toastNotify.open();
